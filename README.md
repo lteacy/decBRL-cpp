@@ -3,6 +3,8 @@ decBRL-cpp
 
 Decentralised Bayesian Reinforcement Learning Library, written in C++
 
+The API documentation for this library can be found here: http://lteacy.github.com/decBRL-cpp/
+
 Dependencies
 ============
 This software currently depends on the random module of Boost (see http://www.boost.org/), and the maxsum-cpp library (see https://github.com/lteacy/maxsum-cpp).
