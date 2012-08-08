@@ -5,8 +5,7 @@ Decentralised Bayesian Reinforcement Learning Library, written in C++
 
 Dependencies
 ============
-Currently this project has no platform specific or third-party dependencies, other than the C++ Standard Library.
-However, this may change as development proceeds.
+This software currently depends on the random module of Boost (see http://www.boost.org/), and the maxsum-cpp library (see https://github.com/lteacy/maxsum-cpp).
 
 doxygen is required to compile documentation in html. In addition, LaTeX is required to generate forumla's included in the html, and to generate a pdf version of the documentation.
 
