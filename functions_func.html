@@ -68,6 +68,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
     <ul class="tablist">
       <li><a href="functions.html"><span>All</span></a></li>
       <li class="current"><a href="functions_func.html"><span>Functions</span></a></li>
+      <li><a href="functions_type.html"><span>Typedefs</span></a></li>
     </ul>
   </div>
 </div><!-- top -->
@@ -76,7 +77,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Typedefs</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -90,11 +91,23 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <li>act()
 : <a class="el" href="classmdp__sim_1_1_random_policy.html#a2ca6edcff8c689dfa2f8d198b6efbea3">mdp_sim::RandomPolicy&lt; ActionDomainType, StateType &gt;</a>
 </li>
+<li>degrees_of_freedom()
+: <a class="el" href="classdec__brl_1_1dist_1_1_non_central_t.html#a7f1eb0654d2abef414dc7b9ec6d70db5">dec_brl::dist::NonCentralT&lt; RealType, Policy &gt;</a>
+</li>
 <li>getActionDomain()
 : <a class="el" href="classmdp__sim_1_1_simple_m_d_p.html#a50cc8558391bba24d89c07017cbfb525">mdp_sim::SimpleMDP</a>
 </li>
 <li>initState()
 : <a class="el" href="classmdp__sim_1_1_simple_m_d_p.html#a95fe8a4204a58dae5feb2ba3cc03167c">mdp_sim::SimpleMDP</a>
+</li>
+<li>location()
+: <a class="el" href="classdec__brl_1_1dist_1_1_non_central_t.html#a6c85d4093dbece0b3fda620b09da1593">dec_brl::dist::NonCentralT&lt; RealType, Policy &gt;</a>
+</li>
+<li>NonCentralT()
+: <a class="el" href="classdec__brl_1_1dist_1_1_non_central_t.html#a4288fd011f3a8d1eb3a126e2417bbb41">dec_brl::dist::NonCentralT&lt; RealType, Policy &gt;</a>
+</li>
+<li>scale()
+: <a class="el" href="classdec__brl_1_1dist_1_1_non_central_t.html#a6b333e4c745244a329795d91df0a8c01">dec_brl::dist::NonCentralT&lt; RealType, Policy &gt;</a>
 </li>
 <li>SimpleMDP()
 : <a class="el" href="classmdp__sim_1_1_simple_m_d_p.html#a8c231e4de8766ff656b0e285094b4abc">mdp_sim::SimpleMDP</a>
@@ -106,7 +119,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Aug 8 2012 13:12:44 for DecBRL by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Aug 13 2012 16:52:28 for DecBRL by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.1.2
 </small></address>
