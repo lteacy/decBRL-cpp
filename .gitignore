@@ -9,3 +9,4 @@ Testing/
 bin/
 doc/
 lib/
+*.swp
