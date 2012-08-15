@@ -123,14 +123,14 @@ bool testVPI(const NormalGamma& paramDist)
       // Check that gain increases or decreases correctly depending on 
       // best (or 2nd best) value.
       //************************************************************************
-      if(prevBestVPI > exactBestVPI)
+      if(prevBestVPI >= exactBestVPI)
       {
          std::cout << "VPI for best action should be an increasing function "
             " of the 2nd best action value." << std::endl;
          return false;
       }
 
-      if(prevNotBestVPI < exactNotBestVPI)
+      if(prevNotBestVPI <= exactNotBestVPI)
       {
          std::cout << "VPI for non best actions should be a decreasing "
             "function of the 1st best action value." << std::endl;
@@ -202,13 +202,13 @@ int main()
       double bestVPI = vpi(true,1,-1,paramDist);
       double notBestVPI = vpi(false,1,-1,paramDist);
 
-      if(bestVPI > prevBestVPI)
+      if(bestVPI >= prevBestVPI)
       {
          std::cout << "Best VPI should always decrease with entropy.\n";
          return EXIT_FAILURE;
       }
 
-      if(notBestVPI > prevNotBestVPI)
+      if(notBestVPI >= prevNotBestVPI)
       {
          std::cout << "Not-Best VPI should always decrease with entropy.\n";
          return EXIT_FAILURE;
