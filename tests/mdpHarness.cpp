@@ -2,6 +2,7 @@
 #include "SimpleMDP.h"
 #include "RandomPolicy.h"
 #include "random.h"
+#include <algorithm>
 
 
 /**
@@ -10,7 +11,9 @@
 int main()
 {
    using namespace mdp_sim;
-   std::cout << "Hello world!" << std::endl;
+   double x = 2;
+   double y = 3;
+   std::cout << "Hello world! " << std::min<const double&>(x,y) << std::endl;
 
    //***************************************************************************
    // Initialse random number generator used by all stochastic functions in

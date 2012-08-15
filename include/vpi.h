@@ -7,6 +7,7 @@
 
 #include <boost/math/special_functions/gamma.hpp>
 #include "NonCentralT.h"
+#include "NormalGamma.h"
 
 /**
  * Namespace all public functions and types defined in the DecBRL library.
@@ -26,7 +27,7 @@ namespace dec_brl
     */
    template<class RealType, class Policy> RealType trunctionBias 
    (
-    const dist::NormalGamma<RealType,Policy>& valDist,
+    const dist::NormalGamma_Tmpl<RealType,Policy>& valDist,
     const Policy& policy
    )
    {
@@ -42,9 +43,9 @@ namespace dec_brl
     * value.
     * @see http://eprints.soton.ac.uk/273201/
     */
-   template<class RealType> RealType trunctionBias 
+   template<class RealType, class Policy> RealType trunctionBias 
    (
-    const dist::NormalGamma<RealType,Policy>& valDist
+    const dist::NormalGamma_Tmpl<RealType,Policy>& valDist
    )
    {
       return 0;
@@ -73,7 +74,7 @@ namespace dec_brl
     bool isBestAction,
     const RealType bestVal1,
     const RealType bestVal2,
-    const dist::NormalGamma<RealType,Policy>& valDist,
+    const dist::NormalGamma_Tmpl<RealType,Policy>& valDist
    )
    {
       return 0;

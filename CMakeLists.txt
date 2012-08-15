@@ -15,6 +15,8 @@ SET(CMAKE_BUILD_TYPE Debug)
 # verbose makefile
 SET(CMAKE_VERBOSE_MAKEFILE OFF)
 
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
+
 # output directory for binaries and libraries
 SET(BIN ${CMAKE_SOURCE_DIR}/bin)
 SET(LIB ${CMAKE_SOURCE_DIR}/lib)
@@ -23,6 +25,7 @@ set(Boost_USE_STATIC_LIBS        ON)
 set(Boost_USE_MULTITHREADED      ON)
 set(Boost_USE_STATIC_RUNTIME    OFF)
 find_package(Boost 1.36.0 COMPONENTS random)
+find_package(Eigen3 3.1.1)
 
 ###########################################
 # Generate Documentation                  #
@@ -47,7 +50,7 @@ SET(LIBRARY_OUTPUT_PATH ${LIB} CACHE PATH "Output directory for the libraries")
 SET(EXECUTABLE_OUTPUT_PATH ${BIN} CACHE PATH "Output directory for the executables")
 
 # allow linking to these directories
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include ${Boost_INCLUDE_DIRS})
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include ${Boost_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIR})
 LINK_DIRECTORIES(${LIBRARY_OUTPUT_PATH})
 
 ############################
@@ -74,11 +77,14 @@ TARGET_LINK_LIBRARIES(DecBRL ${Boost_LIBRARIES})
 # build test harnesses        #
 ###############################
 ADD_EXECUTABLE(mdpHarness tests/mdpHarness.cpp)
+ADD_EXECUTABLE(vpiHarness tests/vpiHarness.cpp)
 TARGET_LINK_LIBRARIES(mdpHarness DecBRL)
+TARGET_LINK_LIBRARIES(vpiHarness DecBRL)
 
 ###############################
 # enable testing              #
 ###############################
 ENABLE_TESTING()
 ADD_TEST(MDP_TEST ${CMAKE_SOURCE_DIR}/bin/mdpHarness)
+ADD_TEST(VPI_TEST ${CMAKE_SOURCE_DIR}/bin/vpiHarness)
 
