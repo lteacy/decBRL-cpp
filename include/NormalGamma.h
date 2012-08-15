@@ -33,7 +33,50 @@ namespace dist {
    template<class RealType=double, class Policy=boost::math::policies::policy<> >
    class NormalGamma_Tmpl
    {
+   public:
+
+      /**
+       * Default value for alpha hyperparameter.
+       */
+      static const RealType DEFAULT_ALPHA;
+
+      /**
+       * Default value for beta hyperparameter.
+       */
+      static const RealType DEFAULT_BETA;
+
+      /**
+       * Default value for m hyperparameter
+       */
+      static const RealType DEFAULT_M;
+
+      /**
+       * Default value for lamba hyperparameter.
+       */
+      static const RealType DEFAULT_LAMBDA;
+
    private:
+
+      /**
+       * The alpha hyperparmeter.
+       */
+      RealType alpha_i;
+
+      /**
+       * The beta hyperparameter.
+       */
+      RealType beta_i;
+
+      /**
+       * The lambda hyperparameter.
+       */
+      RealType lambda_i;
+
+      /**
+       * The m hyperparmeter.
+       */
+      RealType m_i;
+
    public:
 
       /**
@@ -46,7 +89,89 @@ namespace dist {
        */
       typedef Policy policy_type;
 
+      /**
+       * Constructs a new distribution with specified parameters.
+       * @param[in] a value for alpha hyperparameter.
+       * @param[in] b value for beta hyperparameter.
+       * @param[in] l value for lambda hyperparmeter.
+       * @param[in] m value for m hyperparameter.
+       */
+      NormalGamma_Tmpl
+      (
+       RealType a=DEFAULT_ALPHA,
+       RealType b=DEFAULT_BETA,
+       RealType l=DEFAULT_LAMBDA,
+       RealType m=DEFAULT_M
+      )
+      : alpha_i(a), beta_i(b), lambda_i(l), m_i(m) {}
+
+      /**
+       * Accessor method for alpha hyperparameter.
+       */
+      RealType alpha() const { return alpha_i; }
+
+      /**
+       * Accessor method for beta hyperparameter.
+       */
+      RealType beta() const { return beta_i; }
+
+      /**
+       * Accessor method for the lambda hyperparameter.
+       */
+      RealType lambda() const { return lambda_i; }
+
+      /**
+       * Accessor method for the m hyperparameter.
+       */
+      RealType m() const { return m_i; }
+
+      /**
+       * Accessor method for alpha hyperparameter.
+       */
+      void alpha(RealType a) const { alpha_i=a; }
+
+      /**
+       * Accessor method for beta hyperparameter.
+       */
+      void beta(RealType b) const { beta_i=b; }
+
+      /**
+       * Accessor method for the lambda hyperparameter.
+       */
+      void lambda(RealType l) const { lambda_i=l; }
+
+      /**
+       * Accessor method for the m hyperparameter.
+       */
+      void m(RealType m) const { m_i=m; }
+
    }; // class NormalGamma_Tmpl distribution
+
+   /**
+    * Default value for alpha hyperparameter.
+    */
+   template<class RealType, class Policy> const RealType
+      NormalGamma_Tmpl<RealType,Policy>::DEFAULT_ALPHA = 0.00000001;
+
+   /**
+    * Default value for beta hyperparameter.
+    */
+   template<class RealType, class Policy> const RealType
+      NormalGamma_Tmpl<RealType,Policy>::DEFAULT_BETA
+         = 0.00000000000000001;
+
+   /**
+    * Default value for m hyperparameter
+    */
+   template<class RealType, class Policy> const RealType
+      NormalGamma_Tmpl<RealType,Policy>::DEFAULT_M = 0.0;
+
+   /**
+    * Default value for lamba hyperparameter.
+    */
+   template<class RealType, class Policy> const RealType
+      NormalGamma_Tmpl<RealType,Policy>::DEFAULT_LAMBDA
+         = 0.00000000000000000000001;
 
    /**
     * Convenience typedef for distributions that use the
@@ -75,6 +200,16 @@ namespace dist {
    template<class RealType, class Policy> void observe
       (NormalGamma_Tmpl<RealType,Policy>& paramDist, RealType x)
    {
+      // TODO Matlab code to copy
+      //a = model.a + n;
+      //v = model.v + n;
+      //m = model.v*model.m; m(:)=m(:)+n*mu(:); m=m/v;
+      //b = ss + n*mu*mu' + model.v*model.m*model.m' - v*m*m' + model.b;
+
+      //RealType newAlpha = alpha_i + 1;
+      //RealType newLambda = lambda_i + 1;
+      //RealType m = (lambda_i*m_i + x) / newLambda;
+      // TODO RealType newBeta = beta_i + 2*x*x + ...
 
    } // function observe
 
