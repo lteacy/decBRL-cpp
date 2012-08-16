@@ -3,6 +3,7 @@
  * Test harness for functions in vpi.h and related code.
  */
 
+#include <exception>
 #include <cfloat>
 #include "vpi.h"
 #include "NormalGamma.h"
@@ -159,77 +160,86 @@ bool testVPI(const NormalGamma& paramDist)
  */
 int main()
 {
-   using namespace dec_brl;
-   using namespace dec_brl::dist;
-   std::cout << "Hello World!" << std::endl;
-
-   //***************************************************************************
-   // Construct a random number generator for a standard normal distribution.
-   //***************************************************************************
-   boost::mt19937 rnd;  // uniform random number generator
-   boost::normal_distribution<> normal; // normal distribution
-   boost::variate_generator<boost::mt19937&,boost::normal_distribution<> >
-      normrnd(rnd,normal); // generates normal distributed random variates.
-
-   //***************************************************************************
-   // Construct a normal-gamma distribution with default hyperparameters.
-   //***************************************************************************
-   NormalGamma paramDist;
-
-   //***************************************************************************
-   // Repeatedly update the normal-gamma distribution with observations from
-   // the standard normal, and validate VPI after each observation.
-   //***************************************************************************
-   double prevBestVPI = DBL_MAX;
-   double prevNotBestVPI = DBL_MAX;
-   for(int sampleSize=0; sampleSize<60; ++sampleSize)
+   try
    {
+      using namespace dec_brl;
+      using namespace dec_brl::dist;
+      std::cout << "Hello World!" << std::endl;
+
       //************************************************************************
-      // Run batch of VPI tests given the current state of the parameter
-      // distribution
+      // Construct a random number generator for a standard normal distribution.
       //************************************************************************
-      if(!testVPI(paramDist))
+      boost::mt19937 rnd;  // uniform random number generator
+      boost::normal_distribution<> normal; // normal distribution
+      boost::variate_generator<boost::mt19937&,boost::normal_distribution<> >
+         normrnd(rnd,normal); // generates normal distributed random variates.
+   
+      //************************************************************************
+      // Construct a normal-gamma distribution with default hyperparameters.
+      //************************************************************************
+      NormalGamma paramDist;
+   
+      //************************************************************************
+      // Repeatedly update the normal-gamma distribution with observations from
+      // the standard normal, and validate VPI after each observation.
+      //************************************************************************
+      double prevBestVPI = DBL_MAX;
+      double prevNotBestVPI = DBL_MAX;
+      for(int sampleSize=0; sampleSize<60; ++sampleSize)
       {
-         std::cout << "Main VPI tests failed at " << sampleSize
-            << " observations." << std::endl;
-         return EXIT_FAILURE;
-      }
+         //*********************************************************************
+         // Run batch of VPI tests given the current state of the parameter
+         // distribution
+         //*********************************************************************
+         if(!testVPI(paramDist))
+         {
+            std::cout << "Main VPI tests failed at " << sampleSize
+               << " observations." << std::endl;
+            return EXIT_FAILURE;
+         }
+   
+         //*********************************************************************
+         // Calculate vpi exactly, and make sure it always gets smaller as the
+         // number of observations increases.
+         //*********************************************************************
+         double bestVPI = vpi(true,1,-1,paramDist);
+         double notBestVPI = vpi(false,1,-1,paramDist);
+   
+         if(bestVPI >= prevBestVPI)
+         {
+            std::cout << "Best VPI should always decrease with entropy.\n";
+            return EXIT_FAILURE;
+         }
+   
+         if(notBestVPI >= prevNotBestVPI)
+         {
+            std::cout << "Not-Best VPI should always decrease with entropy.\n";
+            return EXIT_FAILURE;
+         }
+   
+         //*********************************************************************
+         // Store the current VPI values for later comparision.
+         //*********************************************************************
+         prevBestVPI = bestVPI;
+         prevNotBestVPI = notBestVPI;
+   
+         //*********************************************************************
+         // Update the parameter distribution with a new standard normal
+         // observation. This should decrease the entropy of the parameter
+         // distribution.
+         //*********************************************************************
+         double observation = normrnd();
+         observe(paramDist,observation);
+   
+      } // for loop
 
-      //************************************************************************
-      // Calculate vpi exactly, and make sure it always gets smaller as the
-      // number of observations increases.
-      //************************************************************************
-      double bestVPI = vpi(true,1,-1,paramDist);
-      double notBestVPI = vpi(false,1,-1,paramDist);
-
-      if(bestVPI >= prevBestVPI)
-      {
-         std::cout << "Best VPI should always decrease with entropy.\n";
-         return EXIT_FAILURE;
-      }
-
-      if(notBestVPI >= prevNotBestVPI)
-      {
-         std::cout << "Not-Best VPI should always decrease with entropy.\n";
-         return EXIT_FAILURE;
-      }
-
-      //************************************************************************
-      // Store the current VPI values for later comparision.
-      //************************************************************************
-      prevBestVPI = bestVPI;
-      prevNotBestVPI = notBestVPI;
-
-      //************************************************************************
-      // Update the parameter distribution with a new standard normal
-      // observation. This should decrease the entropy of the parameter
-      // distribution.
-      //************************************************************************
-      double observation = normrnd();
-      observe(paramDist,observation);
-
-   } // for loop
-
+   }
+   catch(std::exception& e)
+   {
+      std::cout << "Caught error: " << e.what() << std::endl;
+      return EXIT_FAILURE;
+   }
+   
    //***************************************************************************
    // If we get this far, everything is ok.
    //***************************************************************************

@@ -8,6 +8,7 @@
 #include <boost/math/special_functions/gamma.hpp>
 #include "NonCentralT.h"
 #include "NormalGamma.h"
+#include <cmath>
 
 /**
  * Namespace all public functions and types defined in the DecBRL library.
@@ -15,40 +16,48 @@
 namespace dec_brl
 {
    /**
-    * Calculates Teacy et al's Truncation Bias Function.
+    * Calculates Teacy et al's Truncation Bias Function, as defined in http://eprints.soton.ac.uk/273201/.
+    * For an input parameter, \c x, and Normal-Gamma distribution, \c dist,
+    * with hyperparameters
+    * \f$\rho = \langle \alpha, \beta, \lambda, m \rangle \f$,
+    * the truncation bias function is defined as
+    * \f[
+    * \mathcal{B}_{\rho}(x) =
+    * \frac{\Gamma\left(\alpha - \frac{1}{2} \right) \sqrt{\beta}
+    * \left( 1+ \frac{\lambda(x-m)^2}{2\beta} \right)^{-\alpha+\frac{1}{2}}}
+    * {\Gamma(\alpha)\Gamma(1/2)\sqrt{2\lambda}}
+    * \f]
     * @tparam RealType scalar type used for parameters and return values.
     * @tparam Policy Boost.Math policy used to calculate results. This effects
     * result accuracy, but the default policy is normally suffice.
-    * @param valDist the Normal-Gamma parameter distribution for an action's
-    * value.
-    * @param policy Boost.Math policy used to calculate results. This effects
-    * result accuracy, but the default policy is normally suffice.
+    * @param dist the Normal-Gamma parameter distribution with hyperparameters
+    * \f$\rho = \langle \alpha, \beta, \lambda, m \rangle \f$.
+    * @param x input for return value \f$\mathcal{B}_{\rho}(x)\f$
+    * @returns \f$\mathcal{B}_{\rho}(x)\f$
     * @see http://eprints.soton.ac.uk/273201/
     */
-   template<class RealType, class Policy> RealType trunctionBias 
+   template<class RealType, class Policy> RealType truncationBias 
    (
-    const dist::NormalGamma_Tmpl<RealType,Policy>& valDist,
-    const Policy& policy
+    const dist::NormalGamma_Tmpl<RealType,Policy>& dist,
+    const RealType x
    )
    {
-      return 0;
-   }
+      using namespace boost::math;
 
-   /**
-    * Calculates Teacy et al's Truncation Bias Function.
-    * This version of the function uses the default Math.Boost policy to
-    * calculate values.
-    * @tparam RealType scalar type used for parameters and return values.
-    * @param valDist the Normal-Gamma parameter distribution for an action's
-    * value.
-    * @see http://eprints.soton.ac.uk/273201/
-    */
-   template<class RealType, class Policy> RealType trunctionBias 
-   (
-    const dist::NormalGamma_Tmpl<RealType,Policy>& valDist
-   )
-   {
-      return 0;
+      Policy policy; // Boost.Math policy used for calculations.
+
+      const RealType alpha = dist.alpha();
+      const RealType beta = dist.beta();
+      const RealType lambda = dist.lambda();
+      const RealType m = dist.m();
+      const RealType inbrackets = 1 + lambda*(x-m)*(x-m)/2.0/beta;
+
+      RealType result  = 1/tgamma<RealType,Policy>(0.5, policy);
+               result *= tgamma_ratio(alpha-0.5, alpha, policy);
+               result *= std::sqrt(alpha/2.0/lambda);
+               result *= std::pow(inbrackets,0.5-alpha);
+
+      return result;
    }
 
    /**
@@ -63,7 +72,7 @@ namespace dec_brl
     * @param[in] isBestAction true iff calculating vpi for the 1st best action.
     * @param[in] bestVal1 the expected value of the 1st best action.
     * @param[in] bestVal2 the expected value of the 2nd best action.
-    * @param[in] valDist the parameter distribution for the action for which
+    * @param[in] dist the parameter distribution for the action for which
     * VPI is to be calculated.
     * @return an estimate of the VPI for an action whoses value is distributed
     * according to \c valDist.
@@ -74,10 +83,23 @@ namespace dec_brl
     bool isBestAction,
     const RealType bestVal1,
     const RealType bestVal2,
-    const dist::NormalGamma_Tmpl<RealType,Policy>& valDist
+    const dist::NormalGamma_Tmpl<RealType,Policy>& dist
    )
    {
-      return 0;
+      using namespace boost::math;
+      dist::NonCentralT_Tmpl<RealType,Policy> marginal = meanMarginal(dist);
+      if(isBestAction)
+      {
+         RealType result = truncationBias(dist,bestVal2);
+         result += (bestVal2-dist.m()) * cdf(marginal,bestVal2);
+         return result;
+      }
+      else
+      {
+         RealType result = truncationBias(dist,bestVal1);
+         result += (dist.m()-bestVal1) * cdf(complement(marginal,bestVal1));
+         return result;
+      }
 
    } // vpi function
 

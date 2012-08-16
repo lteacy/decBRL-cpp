@@ -128,22 +128,22 @@ namespace dist {
       /**
        * Accessor method for alpha hyperparameter.
        */
-      void alpha(RealType a) const { alpha_i=a; }
+      void alpha(RealType a) { alpha_i=a; }
 
       /**
        * Accessor method for beta hyperparameter.
        */
-      void beta(RealType b) const { beta_i=b; }
+      void beta(RealType b) { beta_i=b; }
 
       /**
        * Accessor method for the lambda hyperparameter.
        */
-      void lambda(RealType l) const { lambda_i=l; }
+      void lambda(RealType l) { lambda_i=l; }
 
       /**
        * Accessor method for the m hyperparameter.
        */
-      void m(RealType m) const { m_i=m; }
+      void m(RealType m) { m_i=m; }
 
    }; // class NormalGamma_Tmpl distribution
 
@@ -182,34 +182,50 @@ namespace dist {
    /**
     * Constructs a new NonCentralT distribution representing the marginal
     * distribution of the mean, for an unknown Gaussian distribution.
-    * @param[in] the parameter distribution of the unknown Gaussian.
+    * @param[in] dist the parameter distribution of the unknown Gaussian.
     * @returns the marginal distribution of the mean.
     */
    template<class RealType, class Policy> NonCentralT_Tmpl<RealType,Policy>
-      meanMarginal(const NormalGamma_Tmpl<RealType,Policy>& paramDist)
+      meanMarginal(const NormalGamma_Tmpl<RealType,Policy>& dist)
    {
-      return NonCentralT_Tmpl<RealType,Policy>(1);
+      RealType df = 2*dist.alpha();
+      RealType loc = dist.m();
+      RealType scale = std::sqrt(dist.beta()/dist.lambda()/dist.alpha());
+      return NonCentralT_Tmpl<RealType,Policy>(df,loc,scale);
    }
 
    /**
     * Updates a parameter distribution given an observation drawn from its
-    * target distribution.
+    * target distribution. The update equations here are based on:
+    * Section 7.6 of M. DeGroot and M. Schervish. Probability & Statistics.
+    * Addison-Wesley, 3rd edition, 2002. Precise update equations used here
+    * are
+    * \f{eqnarray*}{
+    * \alpha' &=& \alpha + \frac{1}{2} \\
+    * \beta' &=& \beta + \frac{\lambda(x-m)^2}{2(\lambda+1)} \\
+    * \lambda' &=& \lambda + 1 \\
+    * m' &=& \frac{\lambda m + x}{\lambda+1}
+    * \f}
     * @param paramDist the parameter distribution to update.
     * @param[in] x an observation drawn from the target distribution.
     */
    template<class RealType, class Policy> void observe
       (NormalGamma_Tmpl<RealType,Policy>& paramDist, RealType x)
    {
-      // TODO Matlab code to copy
-      //a = model.a + n;
-      //v = model.v + n;
-      //m = model.v*model.m; m(:)=m(:)+n*mu(:); m=m/v;
-      //b = ss + n*mu*mu' + model.v*model.m*model.m' - v*m*m' + model.b;
+      RealType oldAlpha = paramDist.alpha();
+      RealType oldBeta = paramDist.beta();
+      RealType oldLambda = paramDist.lambda();
+      RealType oldM = paramDist.m();
 
-      //RealType newAlpha = alpha_i + 1;
-      //RealType newLambda = lambda_i + 1;
-      //RealType m = (lambda_i*m_i + x) / newLambda;
-      // TODO RealType newBeta = beta_i + 2*x*x + ...
+      RealType newAlpha = oldAlpha + 0.5;
+      RealType newLambda = oldLambda + 1;
+      RealType newM = (oldLambda*oldM + x) / newLambda;
+      RealType newBeta = oldBeta + oldLambda*(x-oldM)*(x-oldM)/2.0/newLambda;
+
+      paramDist.alpha(newAlpha);
+      paramDist.beta(newBeta);
+      paramDist.lambda(newLambda);
+      paramDist.m(newM);
 
    } // function observe
 

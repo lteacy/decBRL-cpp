@@ -154,6 +154,21 @@ namespace boost
 namespace math
 {
    /**
+    * Overloads the Boost.Math library variance function for
+    * dec_brl::dist::NonCentralT_Tmpl objects.
+    * @pre degrees of freedom must be greater than 2.
+    * @returns the variance of the non-central t distribution.
+    */
+   template <class RealType, class Policy> RealType variance
+   (
+    const dec_brl::dist::NonCentralT_Tmpl<RealType, Policy>& dist
+   )
+   {
+      RealType df = dist.degrees_of_freedom();
+      return dist.scale()*dist.scale()*df/(df-2);
+   }
+
+   /**
     * Overloads the Boost.Math library standard_deviation function for
     * dec_brl::dist::NonCentralT_Tmpl objects.
     * @returns the standard deviation of the non-central t distribution.
@@ -163,21 +178,35 @@ namespace math
     const dec_brl::dist::NonCentralT_Tmpl<RealType, Policy>& dist
    )
    {
-      return 0;
+      return std::sqrt(variance(dist));
    }
 
    /**
-    * Overloads the Boost.Math library variance function for
-    * dec_brl::dist::NonCentralT_Tmpl objects.
-    * @returns the variance of the non-central t distribution.
+    * The cumulative distribution function for NonCentralT distributions.
+    * Overloads the Boost.Math library equivalent for our own distribution type.
     */
-   template <class RealType, class Policy> RealType variance
+   template <class RealType, class Policy> RealType cdf
    (
-    const dec_brl::dist::NonCentralT_Tmpl<RealType, Policy>& dist
+    const dec_brl::dist::NonCentralT_Tmpl<RealType, Policy>& dist,
+    const RealType& x
    )
    {
-      return 0;
+      return 0.0;
    }
+
+   /**
+    * The cumulative distribution function for the complement of a NonCentralT
+    * distribution.
+    */
+   template <class RealType, class Policy> RealType cdf
+   (
+    const complemented2_type
+      <dec_brl::dist::NonCentralT_Tmpl<RealType, Policy>, RealType>& c
+   )
+   {
+      return 0.0;
+   }
+   
 
 } // namespace math
 } // namespace boost
