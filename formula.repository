@@ -1,0 +1,4 @@
+\form#0:\begin{eqnarray*} \alpha' &=& \alpha + \frac{1}{2} \\ \beta' &=& \beta + \frac{\lambda(x-m)^2}{2(\lambda+1)} \\ \lambda' &=& \lambda + 1 \\ m' &=& \frac{\lambda m + x}{\lambda+1} \end{eqnarray*}
+\form#1:$\rho = \langle \alpha, \beta, \lambda, m \rangle $
+\form#2:\[ \mathcal{B}_{\rho}(x) = \frac{\Gamma\left(\alpha - \frac{1}{2} \right) \sqrt{\beta} \left( 1+ \frac{\lambda(x-m)^2}{2\beta} \right)^{-\alpha+\frac{1}{2}}} {\Gamma(\alpha)\Gamma(1/2)\sqrt{2\lambda}} \]
+\form#3:$\mathcal{B}_{\rho}(x)$

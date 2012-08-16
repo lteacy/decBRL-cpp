@@ -137,9 +137,9 @@ template&lt;class RealType , class Policy &gt; </div>
 </div><div class="memdoc">
 
 <p>Calculates Teacy et al's Truncation Bias Function, as defined in <a href="http://eprints.soton.ac.uk/273201/">http://eprints.soton.ac.uk/273201/</a>. </p>
-<p>For an input parameter, <code>x</code>, and Normal-Gamma distribution, <code>dist</code>, with hyperparameters <img class="formulaInl" alt="$\rho = \langle \alpha, \beta, \lambda, m \rangle $" src="form_2.png"/>, the truncation bias function is defined as </p>
+<p>For an input parameter, <code>x</code>, and Normal-Gamma distribution, <code>dist</code>, with hyperparameters <img class="formulaInl" alt="$\rho = \langle \alpha, \beta, \lambda, m \rangle $" src="form_1.png"/>, the truncation bias function is defined as </p>
 <p class="formulaDsp">
-<img class="formulaDsp" alt="\[ \mathcal{B}_{\rho}(x) = \frac{\Gamma\left(\alpha - \frac{1}{2} \right) \sqrt{\beta} \left( 1+ \frac{\lambda(x-m)^2}{2\beta} \right)^{-\alpha+\frac{1}{2}}} {\Gamma(\alpha)\Gamma(1/2)\sqrt{2\lambda}} \]" src="form_7.png"/>
+<img class="formulaDsp" alt="\[ \mathcal{B}_{\rho}(x) = \frac{\Gamma\left(\alpha - \frac{1}{2} \right) \sqrt{\beta} \left( 1+ \frac{\lambda(x-m)^2}{2\beta} \right)^{-\alpha+\frac{1}{2}}} {\Gamma(\alpha)\Gamma(1/2)\sqrt{2\lambda}} \]" src="form_2.png"/>
 </p>
  <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
@@ -150,12 +150,12 @@ template&lt;class RealType , class Policy &gt; </div>
 </dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">dist</td><td>the Normal-Gamma parameter distribution with hyperparameters <img class="formulaInl" alt="$\rho = \langle \alpha, \beta, \lambda, m \rangle $" src="form_2.png"/>. </td></tr>
-    <tr><td class="paramname">x</td><td>input for return value <img class="formulaInl" alt="$\mathcal{B}_{\rho}(x)$" src="form_6.png"/> </td></tr>
+    <tr><td class="paramname">dist</td><td>the Normal-Gamma parameter distribution with hyperparameters <img class="formulaInl" alt="$\rho = \langle \alpha, \beta, \lambda, m \rangle $" src="form_1.png"/>. </td></tr>
+    <tr><td class="paramname">x</td><td>input for return value <img class="formulaInl" alt="$\mathcal{B}_{\rho}(x)$" src="form_3.png"/> </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd><img class="formulaInl" alt="$\mathcal{B}_{\rho}(x)$" src="form_6.png"/> </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd><img class="formulaInl" alt="$\mathcal{B}_{\rho}(x)$" src="form_3.png"/> </dd></dl>
 <dl class="section see"><dt>See Also</dt><dd><a href="http://eprints.soton.ac.uk/273201/">http://eprints.soton.ac.uk/273201/</a> </dd></dl>
 
 </div>
@@ -292,7 +292,7 @@ template&lt;class RealType , class Rand &gt; </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Aug 16 2012 16:52:37 for DecBRL by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Aug 16 2012 16:55:00 for DecBRL by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.1.2
 </small></address>

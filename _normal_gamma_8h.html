@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
-<title>DecBRL: include/vpi.h File Reference</title>
+<title>DecBRL: include/NormalGamma.h File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -83,41 +83,51 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!-- top -->
 <div class="header">
   <div class="summary">
+<a href="#nested-classes">Classes</a> &#124;
 <a href="#namespaces">Namespaces</a> &#124;
+<a href="#typedef-members">Typedefs</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
-<div class="title">vpi.h File Reference</div>  </div>
+<div class="title">NormalGamma.h File Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 
-<p>Provides functions for calculating the Value of Perfect Information (VPI).  
+<p>Defines a class representing the Normal-Gamma class of conjugate parameter distributions for Gaussian distributions with unknown mean and variance.  
 <a href="#details">More...</a></p>
-<div class="textblock"><code>#include &lt;boost/math/special_functions/gamma.hpp&gt;</code><br/>
-<code>#include &quot;<a class="el" href="_non_central_t_8h_source.html">NonCentralT.h</a>&quot;</code><br/>
-<code>#include &quot;<a class="el" href="_normal_gamma_8h_source.html">NormalGamma.h</a>&quot;</code><br/>
-<code>#include &lt;cmath&gt;</code><br/>
+<div class="textblock"><code>#include &quot;<a class="el" href="_non_central_t_8h_source.html">NonCentralT.h</a>&quot;</code><br/>
 </div>
-<p><a href="vpi_8h_source.html">Go to the source code of this file.</a></p>
+<p><a href="_normal_gamma_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2><a name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdec__brl_1_1dist_1_1_normal_gamma___tmpl.html">dec_brl::dist::NormalGamma_Tmpl&lt; RealType, Policy &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Class Representing Normal-Gamma distributions.  <a href="classdec__brl_1_1dist_1_1_normal_gamma___tmpl.html#details">More...</a><br/></td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2><a name="namespaces"></a>
 Namespaces</h2></td></tr>
 <tr class="memitem:namespacedec__brl"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacedec__brl.html">dec_brl</a></td></tr>
 <tr class="memdesc:namespacedec__brl"><td class="mdescLeft">&#160;</td><td class="mdescRight">Namespace all public functions and types defined in the DecBRL library. <br/></td></tr>
+<tr class="memitem:namespacedec__brl_1_1dist"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacedec__brl_1_1dist.html">dec_brl::dist</a></td></tr>
+<tr class="memdesc:namespacedec__brl_1_1dist"><td class="mdescLeft">&#160;</td><td class="mdescRight">Namespace for classes that represent probability distributions commonly used in Bayesian Reinforcement Learning and Bayesian Analysis. <br/></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2><a name="typedef-members"></a>
+Typedefs</h2></td></tr>
+<tr class="memitem:a18b618549b8b7392dc6bc5a56ace863c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a18b618549b8b7392dc6bc5a56ace863c"></a>
+typedef NormalGamma_Tmpl&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacedec__brl_1_1dist.html#a18b618549b8b7392dc6bc5a56ace863c">dec_brl::dist::NormalGamma</a></td></tr>
+<tr class="memdesc:a18b618549b8b7392dc6bc5a56ace863c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convenience typedef for distributions that use the default template parameters. <br/></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a1f80562a849bb303aae0737340565ce0"><td class="memTemplParams" colspan="2">template&lt;class RealType , class Policy &gt; </td></tr>
-<tr class="memitem:a1f80562a849bb303aae0737340565ce0"><td class="memTemplItemLeft" align="right" valign="top">RealType&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacedec__brl.html#a1f80562a849bb303aae0737340565ce0">dec_brl::truncationBias</a> (const dist::NormalGamma_Tmpl&lt; RealType, Policy &gt; &amp;dist, const RealType x)</td></tr>
-<tr class="memdesc:a1f80562a849bb303aae0737340565ce0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Calculates Teacy et al's Truncation Bias Function, as defined in <a href="http://eprints.soton.ac.uk/273201/">http://eprints.soton.ac.uk/273201/</a>.  <a href="#a1f80562a849bb303aae0737340565ce0"></a><br/></td></tr>
-<tr class="memitem:a0108b1c3eb27317f1f3c851a6fb65d30"><td class="memTemplParams" colspan="2">template&lt;class RealType , class Policy &gt; </td></tr>
-<tr class="memitem:a0108b1c3eb27317f1f3c851a6fb65d30"><td class="memTemplItemLeft" align="right" valign="top">RealType&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacedec__brl.html#a0108b1c3eb27317f1f3c851a6fb65d30">dec_brl::vpi</a> (bool isBestAction, const RealType bestVal1, const RealType bestVal2, const dist::NormalGamma_Tmpl&lt; RealType, Policy &gt; &amp;dist)</td></tr>
-<tr class="memdesc:a0108b1c3eb27317f1f3c851a6fb65d30"><td class="mdescLeft">&#160;</td><td class="mdescRight">Calculates the Value of Perfect Information (VPI) analytically, given that an actions value distribution is a noncentral t distribution.  <a href="#a0108b1c3eb27317f1f3c851a6fb65d30"></a><br/></td></tr>
-<tr class="memitem:a2865e1bed76d417985ea81afe131b6b3"><td class="memTemplParams" colspan="2">template&lt;class RealType , class Rand &gt; </td></tr>
-<tr class="memitem:a2865e1bed76d417985ea81afe131b6b3"><td class="memTemplItemLeft" align="right" valign="top">RealType&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacedec__brl.html#a2865e1bed76d417985ea81afe131b6b3">dec_brl::vpi</a> (bool isBestAction, const RealType bestVal1, const RealType bestVal2, const Rand &amp;valDist, const int noSamples=50)</td></tr>
-<tr class="memdesc:a2865e1bed76d417985ea81afe131b6b3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Calculates the Value of Perfect Information (VPI) using monte carlo sampling.  <a href="#a2865e1bed76d417985ea81afe131b6b3"></a><br/></td></tr>
+<tr class="memitem:a021d34388f5c56cc890ee4bf4461ac44"><td class="memTemplParams" colspan="2">template&lt;class RealType , class Policy &gt; </td></tr>
+<tr class="memitem:a021d34388f5c56cc890ee4bf4461ac44"><td class="memTemplItemLeft" align="right" valign="top">NonCentralT_Tmpl&lt; RealType, <br class="typebreak"/>
+Policy &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacedec__brl_1_1dist.html#a021d34388f5c56cc890ee4bf4461ac44">dec_brl::dist::meanMarginal</a> (const NormalGamma_Tmpl&lt; RealType, Policy &gt; &amp;dist)</td></tr>
+<tr class="memdesc:a021d34388f5c56cc890ee4bf4461ac44"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs a new NonCentralT distribution representing the marginal distribution of the mean, for an unknown Gaussian distribution.  <a href="#a021d34388f5c56cc890ee4bf4461ac44"></a><br/></td></tr>
+<tr class="memitem:a9b6e466321a7bf5633bc46c503a6768c"><td class="memTemplParams" colspan="2">template&lt;class RealType , class Policy &gt; </td></tr>
+<tr class="memitem:a9b6e466321a7bf5633bc46c503a6768c"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacedec__brl_1_1dist.html#a9b6e466321a7bf5633bc46c503a6768c">dec_brl::dist::observe</a> (NormalGamma_Tmpl&lt; RealType, Policy &gt; &amp;paramDist, RealType x)</td></tr>
+<tr class="memdesc:a9b6e466321a7bf5633bc46c503a6768c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Updates a parameter distribution given an observation drawn from its target distribution.  <a href="#a9b6e466321a7bf5633bc46c503a6768c"></a><br/></td></tr>
 </table>
 <a name="details" id="details"></a><h2>Detailed Description</h2>
-<div class="textblock"><p>Provides functions for calculating the Value of Perfect Information (VPI). </p>
+<div class="textblock"><p>Defines a class representing the Normal-Gamma class of conjugate parameter distributions for Gaussian distributions with unknown mean and variance. </p>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
