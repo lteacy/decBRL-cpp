@@ -68,6 +68,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
     <ul class="tablist">
       <li><a href="functions.html"><span>All</span></a></li>
       <li class="current"><a href="functions_func.html"><span>Functions</span></a></li>
+      <li><a href="functions_vars.html"><span>Variables</span></a></li>
       <li><a href="functions_type.html"><span>Typedefs</span></a></li>
     </ul>
   </div>
@@ -77,7 +78,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Typedefs</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Typedefs</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -91,8 +92,14 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <li>act()
 : <a class="el" href="classmdp__sim_1_1_random_policy.html#a2ca6edcff8c689dfa2f8d198b6efbea3">mdp_sim::RandomPolicy&lt; ActionDomainType, StateType &gt;</a>
 </li>
+<li>alpha()
+: <a class="el" href="classdec__brl_1_1dist_1_1_normal_gamma___tmpl.html#a1927e75d50cdcb36d17d564505c9f317">dec_brl::dist::NormalGamma_Tmpl&lt; RealType, Policy &gt;</a>
+</li>
+<li>beta()
+: <a class="el" href="classdec__brl_1_1dist_1_1_normal_gamma___tmpl.html#a5f74493d01f29675ef54f126c41a6830">dec_brl::dist::NormalGamma_Tmpl&lt; RealType, Policy &gt;</a>
+</li>
 <li>degrees_of_freedom()
-: <a class="el" href="classdec__brl_1_1dist_1_1_non_central_t.html#a7f1eb0654d2abef414dc7b9ec6d70db5">dec_brl::dist::NonCentralT&lt; RealType, Policy &gt;</a>
+: <a class="el" href="classdec__brl_1_1dist_1_1_non_central_t___tmpl.html#a14b692c6bf2cf2c2536980976f6830ec">dec_brl::dist::NonCentralT_Tmpl&lt; RealType, Policy &gt;</a>
 </li>
 <li>getActionDomain()
 : <a class="el" href="classmdp__sim_1_1_simple_m_d_p.html#a50cc8558391bba24d89c07017cbfb525">mdp_sim::SimpleMDP</a>
@@ -100,14 +107,29 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <li>initState()
 : <a class="el" href="classmdp__sim_1_1_simple_m_d_p.html#a95fe8a4204a58dae5feb2ba3cc03167c">mdp_sim::SimpleMDP</a>
 </li>
-<li>location()
-: <a class="el" href="classdec__brl_1_1dist_1_1_non_central_t.html#a6c85d4093dbece0b3fda620b09da1593">dec_brl::dist::NonCentralT&lt; RealType, Policy &gt;</a>
+<li>lambda()
+: <a class="el" href="classdec__brl_1_1dist_1_1_normal_gamma___tmpl.html#a3a39334ba30d4c23cee3d72884800a40">dec_brl::dist::NormalGamma_Tmpl&lt; RealType, Policy &gt;</a>
 </li>
-<li>NonCentralT()
-: <a class="el" href="classdec__brl_1_1dist_1_1_non_central_t.html#a4288fd011f3a8d1eb3a126e2417bbb41">dec_brl::dist::NonCentralT&lt; RealType, Policy &gt;</a>
+<li>location()
+: <a class="el" href="classdec__brl_1_1dist_1_1_non_central_t___tmpl.html#a1429b171cc837b866b6bb46d7493c401">dec_brl::dist::NonCentralT_Tmpl&lt; RealType, Policy &gt;</a>
+</li>
+<li>m()
+: <a class="el" href="classdec__brl_1_1dist_1_1_normal_gamma___tmpl.html#a45510f74aabed1bf73b099e48f2680e2">dec_brl::dist::NormalGamma_Tmpl&lt; RealType, Policy &gt;</a>
+</li>
+<li>NonCentralT_Tmpl()
+: <a class="el" href="classdec__brl_1_1dist_1_1_non_central_t___tmpl.html#a48cde7a4ac203270a1e9b751a6b1c190">dec_brl::dist::NonCentralT_Tmpl&lt; RealType, Policy &gt;</a>
+</li>
+<li>NonCentralTRandom_Tmpl()
+: <a class="el" href="classdec__brl_1_1dist_1_1_non_central_t_random___tmpl.html#aa498f4af8e25072953f908826abceff5">dec_brl::dist::NonCentralTRandom_Tmpl&lt; RealType, Policy &gt;</a>
+</li>
+<li>NormalGamma_Tmpl()
+: <a class="el" href="classdec__brl_1_1dist_1_1_normal_gamma___tmpl.html#a29d3cece0a66de164c9e8f4617c67794">dec_brl::dist::NormalGamma_Tmpl&lt; RealType, Policy &gt;</a>
+</li>
+<li>operator()()
+: <a class="el" href="classdec__brl_1_1dist_1_1_non_central_t_random___tmpl.html#a6243d85c34a7351b832e4dd710d51600">dec_brl::dist::NonCentralTRandom_Tmpl&lt; RealType, Policy &gt;</a>
 </li>
 <li>scale()
-: <a class="el" href="classdec__brl_1_1dist_1_1_non_central_t.html#a6b333e4c745244a329795d91df0a8c01">dec_brl::dist::NonCentralT&lt; RealType, Policy &gt;</a>
+: <a class="el" href="classdec__brl_1_1dist_1_1_non_central_t___tmpl.html#a03231eede6a3bd28d3730e587b77faff">dec_brl::dist::NonCentralT_Tmpl&lt; RealType, Policy &gt;</a>
 </li>
 <li>SimpleMDP()
 : <a class="el" href="classmdp__sim_1_1_simple_m_d_p.html#a8c231e4de8766ff656b0e285094b4abc">mdp_sim::SimpleMDP</a>
@@ -119,7 +141,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Aug 13 2012 16:52:28 for DecBRL by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Aug 16 2012 16:52:37 for DecBRL by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.1.2
 </small></address>

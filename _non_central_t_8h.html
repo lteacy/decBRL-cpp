@@ -67,7 +67,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Typedefs</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Typedefs</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -85,7 +85,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#namespaces">Namespaces</a> &#124;
-<a href="#typedef-members">Typedefs</a>  </div>
+<a href="#typedef-members">Typedefs</a> &#124;
+<a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
 <div class="title">NonCentralT.h File Reference</div>  </div>
 </div><!--header-->
@@ -99,10 +100,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2><a name="nested-classes"></a>
 Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdec__brl_1_1dist_1_1_normal_gamma.html">dec_brl::dist::NormalGamma&lt; RealType, Policy &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Class Representing Normal-Gamma distributions.  <a href="classdec__brl_1_1dist_1_1_normal_gamma.html#details">More...</a><br/></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdec__brl_1_1dist_1_1_non_central_t.html">dec_brl::dist::NonCentralT&lt; RealType, Policy &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Class Representing non-central Student's t distribution with location and scale parameters.  <a href="classdec__brl_1_1dist_1_1_non_central_t.html#details">More...</a><br/></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdec__brl_1_1dist_1_1_non_central_t___tmpl.html">dec_brl::dist::NonCentralT_Tmpl&lt; RealType, Policy &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Class Representing non-central Student's t distribution with location and scale parameters.  <a href="classdec__brl_1_1dist_1_1_non_central_t___tmpl.html#details">More...</a><br/></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdec__brl_1_1dist_1_1_non_central_t_random___tmpl.html">dec_brl::dist::NonCentralTRandom_Tmpl&lt; RealType, Policy &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Class used to generate non-central t distributed random variates.  <a href="classdec__brl_1_1dist_1_1_non_central_t_random___tmpl.html#details">More...</a><br/></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2><a name="namespaces"></a>
 Namespaces</h2></td></tr>
@@ -110,22 +111,43 @@ Namespaces</h2></td></tr>
 <tr class="memdesc:namespacedec__brl"><td class="mdescLeft">&#160;</td><td class="mdescRight">Namespace all public functions and types defined in the DecBRL library. <br/></td></tr>
 <tr class="memitem:namespacedec__brl_1_1dist"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacedec__brl_1_1dist.html">dec_brl::dist</a></td></tr>
 <tr class="memdesc:namespacedec__brl_1_1dist"><td class="mdescLeft">&#160;</td><td class="mdescRight">Namespace for classes that represent probability distributions commonly used in Bayesian Reinforcement Learning and Bayesian Analysis. <br/></td></tr>
+<tr class="memitem:namespaceboost"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceboost.html">boost</a></td></tr>
+<tr class="memdesc:namespaceboost"><td class="mdescLeft">&#160;</td><td class="mdescRight">The standard namespace for the Boost collection of libraries. <br/></td></tr>
+<tr class="memitem:namespaceboost_1_1math"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceboost_1_1math.html">boost::math</a></td></tr>
+<tr class="memdesc:namespaceboost_1_1math"><td class="mdescLeft">&#160;</td><td class="mdescRight">The standard namespace for the Boost.Math library. <br/></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:a490c3964a9d3a9d453cbdf11bc134ab3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a490c3964a9d3a9d453cbdf11bc134ab3"></a>
-typedef NormalGamma&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacedec__brl_1_1dist.html#a490c3964a9d3a9d453cbdf11bc134ab3">dec_brl::dist::NormalGamma</a></td></tr>
-<tr class="memdesc:a490c3964a9d3a9d453cbdf11bc134ab3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convenience typedef for distributions that use the default template parameters. <br/></td></tr>
-<tr class="memitem:ae0593c544d28d732d9025ff0e6d5dc0e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae0593c544d28d732d9025ff0e6d5dc0e"></a>
-typedef NonCentralT&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacedec__brl_1_1dist.html#ae0593c544d28d732d9025ff0e6d5dc0e">dec_brl::dist::NonCentralT</a></td></tr>
-<tr class="memdesc:ae0593c544d28d732d9025ff0e6d5dc0e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convenience typedef for distributions that use the default template parameters. <br/></td></tr>
+<tr class="memitem:ac5bae4d67fe37c75bf5a85a351db58d2"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac5bae4d67fe37c75bf5a85a351db58d2"></a>
+typedef class NonCentralT_Tmpl&lt;&gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacedec__brl_1_1dist.html#ac5bae4d67fe37c75bf5a85a351db58d2">dec_brl::dist::NonCentralT</a></td></tr>
+<tr class="memdesc:ac5bae4d67fe37c75bf5a85a351db58d2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convenience typedef for distributions that uses the default template parameters. <br/></td></tr>
+<tr class="memitem:accb6550a30ee0c3b71d14cf3995dd35e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="accb6550a30ee0c3b71d14cf3995dd35e"></a>
+typedef class <br class="typebreak"/>
+NonCentralTRandom_Tmpl&lt;&gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacedec__brl_1_1dist.html#accb6550a30ee0c3b71d14cf3995dd35e">dec_brl::dist::NonCentralTRandom</a></td></tr>
+<tr class="memdesc:accb6550a30ee0c3b71d14cf3995dd35e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convenience typedef for random generator that uses default template parameters. <br/></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2><a name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:a730b6bd146ac197372f74b57484a37ac"><td class="memTemplParams" colspan="2">template&lt;class RealType , class Policy &gt; </td></tr>
+<tr class="memitem:a730b6bd146ac197372f74b57484a37ac"><td class="memTemplItemLeft" align="right" valign="top">RealType&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceboost_1_1math.html#a730b6bd146ac197372f74b57484a37ac">boost::math::variance</a> (const <a class="el" href="classdec__brl_1_1dist_1_1_non_central_t___tmpl.html">dec_brl::dist::NonCentralT_Tmpl</a>&lt; RealType, Policy &gt; &amp;dist)</td></tr>
+<tr class="memdesc:a730b6bd146ac197372f74b57484a37ac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Overloads the Boost.Math library variance function for <a class="el" href="classdec__brl_1_1dist_1_1_non_central_t___tmpl.html" title="Class Representing non-central Student&#39;s t distribution with location and scale parameters.">dec_brl::dist::NonCentralT_Tmpl</a> objects.  <a href="#a730b6bd146ac197372f74b57484a37ac"></a><br/></td></tr>
+<tr class="memitem:acd493e25a0fd7fae5d6ff8ceb084bd90"><td class="memTemplParams" colspan="2">template&lt;class RealType , class Policy &gt; </td></tr>
+<tr class="memitem:acd493e25a0fd7fae5d6ff8ceb084bd90"><td class="memTemplItemLeft" align="right" valign="top">RealType&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceboost_1_1math.html#acd493e25a0fd7fae5d6ff8ceb084bd90">boost::math::standard_deviation</a> (const <a class="el" href="classdec__brl_1_1dist_1_1_non_central_t___tmpl.html">dec_brl::dist::NonCentralT_Tmpl</a>&lt; RealType, Policy &gt; &amp;dist)</td></tr>
+<tr class="memdesc:acd493e25a0fd7fae5d6ff8ceb084bd90"><td class="mdescLeft">&#160;</td><td class="mdescRight">Overloads the Boost.Math library standard_deviation function for <a class="el" href="classdec__brl_1_1dist_1_1_non_central_t___tmpl.html" title="Class Representing non-central Student&#39;s t distribution with location and scale parameters.">dec_brl::dist::NonCentralT_Tmpl</a> objects.  <a href="#acd493e25a0fd7fae5d6ff8ceb084bd90"></a><br/></td></tr>
+<tr class="memitem:afc90ed9dd257c118598bbbc3788a8e61"><td class="memTemplParams" colspan="2">template&lt;class RealType , class Policy &gt; </td></tr>
+<tr class="memitem:afc90ed9dd257c118598bbbc3788a8e61"><td class="memTemplItemLeft" align="right" valign="top">RealType&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceboost_1_1math.html#afc90ed9dd257c118598bbbc3788a8e61">boost::math::cdf</a> (const <a class="el" href="classdec__brl_1_1dist_1_1_non_central_t___tmpl.html">dec_brl::dist::NonCentralT_Tmpl</a>&lt; RealType, Policy &gt; &amp;dist, const RealType &amp;x)</td></tr>
+<tr class="memdesc:afc90ed9dd257c118598bbbc3788a8e61"><td class="mdescLeft">&#160;</td><td class="mdescRight">The cumulative distribution function for NonCentralT distributions.  <a href="#afc90ed9dd257c118598bbbc3788a8e61"></a><br/></td></tr>
+<tr class="memitem:adc1ca42a4072f58337781ff50b9d3496"><td class="memTemplParams" colspan="2"><a class="anchor" id="adc1ca42a4072f58337781ff50b9d3496"></a>
+template&lt;class RealType , class Policy &gt; </td></tr>
+<tr class="memitem:adc1ca42a4072f58337781ff50b9d3496"><td class="memTemplItemLeft" align="right" valign="top">RealType&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceboost_1_1math.html#adc1ca42a4072f58337781ff50b9d3496">boost::math::cdf</a> (const complemented2_type&lt; <a class="el" href="classdec__brl_1_1dist_1_1_non_central_t___tmpl.html">dec_brl::dist::NonCentralT_Tmpl</a>&lt; RealType, Policy &gt;, RealType &gt; &amp;c)</td></tr>
+<tr class="memdesc:adc1ca42a4072f58337781ff50b9d3496"><td class="mdescLeft">&#160;</td><td class="mdescRight">The cumulative distribution function for the complement of a NonCentralT distribution. <br/></td></tr>
 </table>
 <a name="details" id="details"></a><h2>Detailed Description</h2>
 <div class="textblock"><p>Defines a class representing non-central Student's t distributions with location and scale parameters. </p>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Aug 13 2012 16:52:28 for DecBRL by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Aug 16 2012 16:52:37 for DecBRL by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.1.2
 </small></address>
