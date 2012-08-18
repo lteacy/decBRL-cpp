@@ -5,6 +5,7 @@
 #ifndef DECBRL_VPI_H
 #define DECBRL_VPI_H
 
+#include <boost/utility/enable_if.hpp>
 #include <boost/math/special_functions/gamma.hpp>
 #include "NonCentralT.h"
 #include "NormalGamma.h"
@@ -108,49 +109,6 @@ namespace dec_brl
    }
 
    /**
-    * Calculates the Value of Perfect Information (VPI) analytically,
-    * given that an actions value distribution is a noncentral t 
-    * distribution. In particular, the value distribution takes this form
-    * in Bayesian Q-learning. This return value is calculated according
-    * to Teacy et al's solution.
-    * @tparam RealType scalar type used for parameters and return values.
-    * @tparam Policy Boost.Math policy used to calculate results. This effects
-    * result accuracy, but the default policy is normally suffice.
-    * @param[in] isBestAction true iff calculating vpi for the 1st best action.
-    * @param[in] bestVal1 the expected value of the 1st best action.
-    * @param[in] bestVal2 the expected value of the 2nd best action.
-    * @param[in] dist the parameter distribution for the action for which
-    * VPI is to be calculated.
-    * @return an estimate of the VPI for an action whoses value is distributed
-    * according to \c valDist.
-    * @see http://eprints.soton.ac.uk/273201/
-    */
-   template<class RealType, class Policy> RealType vpi
-   (
-    bool isBestAction,
-    const RealType bestVal1,
-    const RealType bestVal2,
-    const dist::NormalGamma_Tmpl<RealType,Policy>& dist
-   )
-   {
-      using namespace boost::math;
-      dist::NonCentralT_Tmpl<RealType,Policy> marginal = meanMarginal(dist);
-      if(isBestAction)
-      {
-         RealType result = truncationBias(dist,bestVal2);
-         result += (bestVal2-dist.m()) * cdf(marginal,bestVal2);
-         return result;
-      }
-      else
-      {
-         RealType result = truncationBias(dist,bestVal1);
-         result += (dist.m()-bestVal1) * cdf(complement(marginal,bestVal1));
-         return result;
-      }
-
-   } // vpi function
-
-   /**
     * Calculates the Value of Perfect Information (VPI) using monte carlo
     * sampling. This method is approximate, but works for any value
     * distribution from which random values can be sampled.
@@ -168,7 +126,7 @@ namespace dec_brl
     * according to \c valDist.
     * @see http://eprints.soton.ac.uk/273201/
     */
-   template<class RealType, class Rand> RealType vpi
+   template<class RealType, class Rand> RealType sampledVPI
    (
     bool isBestAction,
     const RealType bestVal1,
@@ -177,7 +135,90 @@ namespace dec_brl
     const int noSamples=50
    )
    {
-      return 0;
+      RealType expGain=0.0; // stores result
+
+      //************************************************************************
+      // Calculate expected gain (VPI) for 1st best action:
+      // If 2nd best action turns out to be best, the gain is the difference.
+      // Otherwise it is zero.
+      //************************************************************************
+      if(isBestAction)
+      {
+         for(int k=0; k<noSamples; ++k)
+         {
+            RealType sampledValue = valDist();
+            if(sampledValue<bestVal2) expGain += bestVal2-sampledValue;
+         }
+      }
+      //************************************************************************
+      // Calculate expected gain (VPI) for any other action
+      // If this action turns out to be best, the gain is the difference with
+      // the 1st best action. Otherwise it is zero.
+      //************************************************************************
+      else
+      {
+         for(int k=0; k<noSamples; ++k)
+         {
+            RealType sampledValue = valDist();
+            if(sampledValue>bestVal1) expGain += sampledValue-bestVal1;
+         }
+      }
+
+      //************************************************************************
+      // Average by dividing by number of samples, and return the result
+      //************************************************************************
+      expGain /= noSamples;
+      return expGain;
+
+   } // vpi function
+
+   /**
+    * Calculates the Value of Perfect Information (VPI) analytically,
+    * given that an actions value distribution is a noncentral t 
+    * distribution. In particular, the value distribution takes this form
+    * in Bayesian Q-learning. This return value is calculated according
+    * to Teacy et al's solution.
+    * @tparam RealType scalar type used for parameters and return values.
+    * @tparam Policy Boost.Math policy used to calculate results. This effects
+    * result accuracy, but the default policy is normally suffice.
+    * @param[in] isBestAction true iff calculating vpi for the 1st best action.
+    * @param[in] bestVal1 the expected value of the 1st best action.
+    * @param[in] bestVal2 the expected value of the 2nd best action.
+    * @param[in] dist the parameter distribution for the action for which
+    * VPI is to be calculated.
+    * @return an estimate of the VPI for an action whoses value is distributed
+    * according to \c valDist.
+    * @see http://eprints.soton.ac.uk/273201/
+    */
+   template<class RealType, class Policy> RealType exactVPI
+   (
+    bool isBestAction,
+    const RealType bestVal1,
+    const RealType bestVal2,
+    const dist::NormalGamma_Tmpl<RealType,Policy>& dist
+   )
+   {
+      using namespace boost::math;
+
+      // truncation bias undefined for alpha<0.5
+      if(dist.alpha()<0.5)
+      {
+         return Limits<RealType>::infinity();
+      }
+      
+      dist::NonCentralT_Tmpl<RealType,Policy> marginal = meanMarginal(dist);
+      if(isBestAction)
+      {
+         RealType result = truncationBias(dist,bestVal2);
+         result += (bestVal2-dist.m()) * cdf(marginal,bestVal2);
+         return result;
+      }
+      else
+      {
+         RealType result = truncationBias(dist,bestVal1);
+         result += (dist.m()-bestVal1) * cdf(complement(marginal,bestVal1));
+         return result;
+      }
 
    } // vpi function
 

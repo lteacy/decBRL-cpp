@@ -91,16 +91,16 @@ bool testVPI(const NormalGamma& paramDist)
       //************************************************************************
       // Calculate VPI analytically (for both best action and other action)
       //************************************************************************
-      double exactBestVPI = vpi(true, bestVal, bestVal, paramDist);
-      double exactNotBestVPI = vpi(false, bestVal, bestVal, paramDist);
+      double exactBestVPI = exactVPI(true, bestVal, bestVal, paramDist);
+      double exactNotBestVPI = exactVPI(false, bestVal, bestVal, paramDist);
 
       //************************************************************************
       // Calculate VPI by sampling (for both best action and other action)
       //************************************************************************
       NonCentralT marginal = meanMarginal(paramDist);
       NonCentralTRandom generator(marginal);
-      double sampledBestVPI = vpi(true, bestVal, bestVal, generator);
-      double sampledNotBestVPI = vpi(false, bestVal, bestVal, generator);
+      double sampledBestVPI = sampledVPI(true, bestVal, bestVal, generator);
+      double sampledNotBestVPI = sampledVPI(false, bestVal, bestVal, generator);
 
       //************************************************************************
       // Check that sampled and exact calculations are consistent within
@@ -202,8 +202,8 @@ int main()
          // Calculate vpi exactly, and make sure it always gets smaller as the
          // number of observations increases.
          //*********************************************************************
-         double bestVPI = vpi(true,1,-1,paramDist);
-         double notBestVPI = vpi(false,1,-1,paramDist);
+         double bestVPI = exactVPI(true,1.0,-1.0,paramDist);
+         double notBestVPI = exactVPI(false,1.0,-1.0,paramDist);
    
          if(bestVPI >= prevBestVPI)
          {

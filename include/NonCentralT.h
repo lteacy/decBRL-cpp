@@ -123,7 +123,7 @@ namespace dist {
        * Returns a random variate distributed according to this
        * generator's distribution.
        */
-      RealType operator()() { return 0.0; }
+      RealType operator()() const { return 0.0; }
 
    }; // class NonCentralTRandom_Tmpl
 
