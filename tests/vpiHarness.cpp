@@ -3,6 +3,7 @@
  * Test harness for functions in vpi.h and related code.
  */
 
+#include <limits>
 #include <exception>
 #include <cfloat>
 #include "vpi.h"
@@ -84,8 +85,8 @@ bool testVPI(const NormalGamma& paramDist)
    //***************************************************************************
    // Test VPI with increasing best value
    //***************************************************************************
-   double prevBestVPI = -DBL_MAX;
-   double prevNotBestVPI = DBL_MAX;
+   double prevBestVPI = -Limits<double>::infinity();
+   double prevNotBestVPI = Limits<double>::infinity();
    for(double bestVal=-10; bestVal<10; bestVal+=0.25) 
    {
       //************************************************************************
@@ -124,17 +125,18 @@ bool testVPI(const NormalGamma& paramDist)
       // Check that gain increases or decreases correctly depending on 
       // best (or 2nd best) value.
       //************************************************************************
-      if(prevBestVPI >= exactBestVPI)
+      if(prevBestVPI > exactBestVPI)
       {
          std::cout << "VPI for best action should be an increasing function "
             " of the 2nd best action value." << std::endl;
          return false;
       }
 
-      if(prevNotBestVPI <= exactNotBestVPI)
+      if(prevNotBestVPI < exactNotBestVPI)
       {
          std::cout << "VPI for non best actions should be a decreasing "
-            "function of the 1st best action value." << std::endl;
+            "function of the 1st best action value: " <<
+            prevNotBestVPI << " < " << exactNotBestVPI << std::endl;
          return false;
       }
 
@@ -165,6 +167,20 @@ int main()
       using namespace dec_brl;
       using namespace dec_brl::dist;
       std::cout << "Hello World!" << std::endl;
+      
+      //************************************************************************
+      // Determine if this platform has its own representation of infinity,
+      // and make a note in the log
+      //************************************************************************
+      if(std::numeric_limits<double>::has_infinity)
+      {
+         std::cout << "Platform has infinity" << std::endl;
+      }
+      else
+      {
+         std::cout << "Platform has no infinity, using max instead"
+            << std::endl;
+      }
 
       //************************************************************************
       // Construct a random number generator for a standard normal distribution.
@@ -183,8 +199,10 @@ int main()
       // Repeatedly update the normal-gamma distribution with observations from
       // the standard normal, and validate VPI after each observation.
       //************************************************************************
-      double prevBestVPI = DBL_MAX;
-      double prevNotBestVPI = DBL_MAX;
+      double prevBestVPI = Limits<double>::infinity();
+      double prevNotBestVPI = Limits<double>::infinity();
+      bool bestVPIChange=false;
+      bool nonBestVPIChange=false;
       for(int sampleSize=0; sampleSize<60; ++sampleSize)
       {
          //*********************************************************************
@@ -205,13 +223,13 @@ int main()
          double bestVPI = exactVPI(true,1.0,-1.0,paramDist);
          double notBestVPI = exactVPI(false,1.0,-1.0,paramDist);
    
-         if(bestVPI >= prevBestVPI)
+         if(bestVPI > prevBestVPI)
          {
             std::cout << "Best VPI should always decrease with entropy.\n";
             return EXIT_FAILURE;
          }
    
-         if(notBestVPI >= prevNotBestVPI)
+         if(notBestVPI > prevNotBestVPI)
          {
             std::cout << "Not-Best VPI should always decrease with entropy.\n";
             return EXIT_FAILURE;
@@ -220,8 +238,17 @@ int main()
          //*********************************************************************
          // Store the current VPI values for later comparision.
          //*********************************************************************
-         prevBestVPI = bestVPI;
-         prevNotBestVPI = notBestVPI;
+         if(prevBestVPI!=bestVPI)
+         {
+            prevBestVPI = bestVPI;
+            bestVPIChange=true;
+         }
+
+         if(prevNotBestVPI!=notBestVPI)
+         {
+            prevNotBestVPI = notBestVPI;
+            nonBestVPIChange=true;
+         }
    
          //*********************************************************************
          // Update the parameter distribution with a new standard normal
@@ -233,6 +260,24 @@ int main()
    
       } // for loop
 
+      //************************************************************************
+      // Ensure that some change in VPI happened at some point
+      //************************************************************************
+      if(!(bestVPIChange || nonBestVPIChange))
+      {
+         std::cout << "VPI never changed after any observations.\n";
+         return EXIT_FAILURE;
+      }
+      else if(!bestVPIChange)
+      {
+         std::cout << "Best VPI never changed after any observations.\n";
+         return EXIT_FAILURE;
+      }
+      else if(!nonBestVPIChange)
+      {
+         std::cout << "Non-Best VPI never changed after any observations.\n";
+         return EXIT_FAILURE;
+      }
    }
    catch(std::exception& e)
    {
