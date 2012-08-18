@@ -9,12 +9,49 @@
 #include "NonCentralT.h"
 #include "NormalGamma.h"
 #include <cmath>
+#include <limits>
 
 /**
  * Namespace all public functions and types defined in the DecBRL library.
  */
 namespace dec_brl
 {
+   /**
+    * Provides a cross-platform representation of infinity.
+    * If this platform has infinity defined, we use it, otherwise we use the
+    * maximum value for a given type. This decision is made at compile time.
+    */
+   template<class RealType, bool test=std::numeric_limits<RealType>::has_infinity> struct Limits
+   {
+      static const RealType infinity();
+   };
+
+   /**
+    * Provides a cross-platform representation of infinity.
+    * If this platform has infinity defined, we use it, otherwise we use the
+    * maximum value for a given type. This decision is made at compile time.
+    */
+   template<class RealType> struct Limits<RealType,false>
+   {
+      static inline const RealType infinity()
+      {
+         return std::numeric_limits<RealType>::max();
+      }
+   };
+
+   /**
+    * Provides a cross-platform representation of infinity.
+    * If this platform has infinity defined, we use it, otherwise we use the
+    * maximum value for a given type. This decision is made at compile time.
+    */
+   template<class RealType> struct Limits<RealType,true>
+   {
+      static inline const RealType infinity()
+      {
+         return std::numeric_limits<RealType>::infinity();
+      }
+   };
+
    /**
     * Calculates Teacy et al's Truncation Bias Function, as defined in http://eprints.soton.ac.uk/273201/.
     * For an input parameter, \c x, and Normal-Gamma distribution, \c dist,
@@ -27,13 +64,18 @@ namespace dec_brl
     * \left( 1+ \frac{\lambda(x-m)^2}{2\beta} \right)^{-\alpha+\frac{1}{2}}}
     * {\Gamma(\alpha)\Gamma(1/2)\sqrt{2\lambda}}
     * \f]
+    * Strictly speaking, this function is not defined for \f$\alpha<0.5\f$.
+    * However, in such cases, it is normally sufficient to return a very large
+    * value, rather than generate an error condition. In such cases, we
+    * therefore return dec_brl::Limits::infinity.
     * @tparam RealType scalar type used for parameters and return values.
     * @tparam Policy Boost.Math policy used to calculate results. This effects
     * result accuracy, but the default policy is normally suffice.
     * @param dist the Normal-Gamma parameter distribution with hyperparameters
     * \f$\rho = \langle \alpha, \beta, \lambda, m \rangle \f$.
     * @param x input for return value \f$\mathcal{B}_{\rho}(x)\f$
-    * @returns \f$\mathcal{B}_{\rho}(x)\f$
+    * @returns \f$\mathcal{B}_{\rho}(x)\f$ or the largest possible value if
+    * dist.alpha() < 0.5.
     * @see http://eprints.soton.ac.uk/273201/
     */
    template<class RealType, class Policy> RealType truncationBias 
@@ -43,6 +85,11 @@ namespace dec_brl
    )
    {
       using namespace boost::math;
+
+      if(dist.alpha()<0.5)
+      {
+         return Limits<RealType>::infinity();
+      }
 
       Policy policy; // Boost.Math policy used for calculations.
 
