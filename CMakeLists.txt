@@ -24,7 +24,7 @@ SET(LIB ${CMAKE_SOURCE_DIR}/lib)
 set(Boost_USE_STATIC_LIBS        ON)
 set(Boost_USE_MULTITHREADED      ON)
 set(Boost_USE_STATIC_RUNTIME    OFF)
-find_package(Boost 1.36.0 COMPONENTS random)
+find_package(Boost 1.40.0 COMPONENTS random)
 find_package(Eigen3 3.1.1)
 
 ###########################################
