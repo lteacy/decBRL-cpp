@@ -5,54 +5,19 @@
 #ifndef DECBRL_VPI_H
 #define DECBRL_VPI_H
 
-#include <boost/utility/enable_if.hpp>
-#include <boost/math/special_functions/gamma.hpp>
-#include "NonCentralT.h"
-#include "NormalGamma.h"
 #include <cmath>
 #include <limits>
+#include <boost/utility/enable_if.hpp>
+#include <boost/math/special_functions/gamma.hpp>
+#include "util.h"
+#include "NonCentralT.h"
+#include "NormalGamma.h"
 
 /**
  * Namespace all public functions and types defined in the DecBRL library.
  */
 namespace dec_brl
 {
-   /**
-    * Provides a cross-platform representation of infinity.
-    * If this platform has infinity defined, we use it, otherwise we use the
-    * maximum value for a given type. This decision is made at compile time.
-    */
-   template<class RealType, bool test=std::numeric_limits<RealType>::has_infinity> struct Limits
-   {
-      static const RealType infinity();
-   };
-
-   /**
-    * Provides a cross-platform representation of infinity.
-    * If this platform has infinity defined, we use it, otherwise we use the
-    * maximum value for a given type. This decision is made at compile time.
-    */
-   template<class RealType> struct Limits<RealType,false>
-   {
-      static inline const RealType infinity()
-      {
-         return std::numeric_limits<RealType>::max();
-      }
-   };
-
-   /**
-    * Provides a cross-platform representation of infinity.
-    * If this platform has infinity defined, we use it, otherwise we use the
-    * maximum value for a given type. This decision is made at compile time.
-    */
-   template<class RealType> struct Limits<RealType,true>
-   {
-      static inline const RealType infinity()
-      {
-         return std::numeric_limits<RealType>::infinity();
-      }
-   };
-
    /**
     * Calculates Teacy et al's Truncation Bias Function, as defined in http://eprints.soton.ac.uk/273201/.
     * For an input parameter, \c x, and Normal-Gamma distribution, \c dist,

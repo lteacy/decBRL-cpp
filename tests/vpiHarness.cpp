@@ -46,6 +46,7 @@ bool consistentVPI_m(const NormalGamma& paramDist, double vpi1, double vpi2)
    // This is based on the 0.95 quantile of the normal approximation to the
    // sample distribution.
    //***************************************************************************
+   using namespace boost::math;
    NonCentralT meanMarginalDistribution = meanMarginal(paramDist);
    double stdevOfMean = standard_deviation(meanMarginalDistribution);
    double stdErr = stdevOfMean * STANDARD_ERROR_COEFFICIENT;

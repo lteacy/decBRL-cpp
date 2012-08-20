@@ -6,7 +6,9 @@
 #ifndef DECBRL_NONCENTRALT_H
 #define DECBRL_NONCENTRALT_H
 
+#include <cassert>
 #include <boost/math/distributions/students_t.hpp>
+#include "util.h"
 
 /**
  * Namespace all public functions and types defined in the DecBRL library.
@@ -23,26 +25,26 @@ namespace dec_brl {
 namespace dist {
 
    /**
-    * Class Representing non-central Student's t distribution with
-    * location and scale parameters. This class is defined using the
+    * Class representing a scaled distribution of some type.
+    * This class is defined using the
     * conventions and concepts of the boost math libraries.
     */
-   template<class RealType=double,class Policy=boost::math::policies::policy<> >
-   class NonCentralT_Tmpl
-      : private boost::math::students_t_distribution<RealType, Policy>
+   template<class BaseDistribution, class RealType=double>
+      class Scaled
    {
-   private:
-
-      // NOTE: Inheritance from students_t_distribution is kept private
-      // because these distributions are concrete types. Pointers of type
-      // students_t_distribution* to NonCentralT objects might not result
-      // in expected behaviour, because functions are not virtual.
-      // Keeping inheritance private therefore discourages incorrect use.
+   public:
 
       /**
-       * Convenience typedef for base class.
+       * Type used to represent real values in this object.
        */
-      typedef boost::math::students_t_distribution<RealType, Policy> BaseClass;
+      typedef typename BaseDistribution::value_type value_type;
+
+      /**
+       * Boost.Math calculation policy used by this object.
+       */
+      typedef typename BaseDistribution::policy_type policy_type;
+
+   private:
 
       /**
        * Location (the mode) of this distribution.
@@ -53,6 +55,78 @@ namespace dist {
        * The scale of this distribution.
        */
       RealType scale_i;
+
+      /**
+       * Underlying base distribution
+       */
+      BaseDistribution base_i;
+
+   public: 
+
+      /**
+       * Constructs a new distribution with specified parameters.
+       * @param base the base distribution to be scaled
+       * @param loc location parameter for this distribution
+       * @param scale scale parameter for this distribution
+       */
+      Scaled
+      (
+       const BaseDistribution& base,
+       RealType loc=0,
+       RealType scale=1
+      )
+      : loc_i(loc), scale_i(scale), base_i(base) {}
+
+      /**
+       * Returns a t distribution with the same degrees of freedom as
+       * this distribution.
+       */
+      const BaseDistribution& base() const
+      {
+         return base_i;
+      }
+
+      /**
+       * Returns the scale parameter for this distribution.
+       */
+      RealType scale() const { return scale_i; }
+
+      /**
+       * Returns the location parameter (mode) of this distribution.
+       */
+      RealType location() const { return loc_i; }
+
+   }; // class Scaled
+
+   /**
+    * Class Representing non-central Student's t distribution with
+    * location and scale parameters. This class is defined using the
+    * conventions and concepts of the boost math libraries.
+    */
+   template<class RealType=double,class Policy=boost::math::policies::policy<> >
+   class NonCentralT_Tmpl
+   {
+   private:
+
+      /**
+       * Convenience typedef for underlying T distribution type.
+       */
+      typedef boost::math::students_t_distribution<RealType, Policy> TDist;
+
+      /**
+       * Location (the mode) of this distribution.
+       */
+      RealType loc_i;
+
+      /**
+       * The scale of this distribution.
+       */
+      RealType scale_i;
+
+      /**
+       * Underlying t distribution
+       */
+      TDist tDist_i;
 
    public: 
 
@@ -111,14 +185,23 @@ namespace dist {
        RealType loc=0,
        RealType scale=1
       )
-      : BaseClass(df), loc_i(loc), scale_i(scale) {}
+      : loc_i(loc), scale_i(scale), tDist_i(df) {}
 
       /**
        * Returns the degrees of freedom for this distribution.
        */
       RealType degrees_of_freedom() const
       {
-         return BaseClass::degrees_of_freedom();
+         return tDist_i.degrees_of_freedom();
+      }
+
+      /**
+       * Returns a t distribution with the same degrees of freedom as
+       * this distribution.
+       */
+      const TDist& tDistribution() const
+      {
+         return tDist_i;
       }
 
       /**
@@ -224,7 +307,8 @@ namespace math
     const RealType& x
    )
    {
-      return 0.0;
+      RealType unscaled_param = (x-dist.location()) / dist.scale();
+      return cdf(dist.tDistribution(),unscaled_param);
    }
 
    /**
@@ -237,9 +321,45 @@ namespace math
       <dec_brl::dist::NonCentralT_Tmpl<RealType, Policy>, RealType>& c
    )
    {
-      return 0.0;
+      RealType unscaled_param = (c.param-c.dist.location()) / c.dist.scale();
+      complemented2_type<students_t_distribution<RealType,Policy>, RealType>
+         unscaled_c(c.dist.tDistribution(),unscaled_param);
+      return cdf(unscaled_c);
+   }
+
+   /**
+    * The quantile (inverse-cdf) for the NonCentralT distribution.
+    * @param dist the probability distribution
+    * @param p the position of the quantile requested.
+    * @pre p must be in range [0,1].
+    */
+   template <class RealType, class Policy> RealType quantile
+   (
+    const dec_brl::dist::NonCentralT_Tmpl<RealType, Policy>& dist,
+    const RealType& p
+   )
+   {
+      RealType tQuantile = quantile(dist.tDistribution());
+      return dist.scale()*tQuantile+dist.location();
    }
    
+   /**
+    * The quantile (inverse-cdf) for the complement NonCentralT distribution.
+    * @param dist the probability distribution
+    * @param p the position of the quantile requested.
+    * @pre p must be in range [0,1].
+    */
+   template <class RealType, class Policy> RealType quantile
+   (
+    const complemented2_type
+      <dec_brl::dist::NonCentralT_Tmpl<RealType, Policy>, RealType>& c
+   )
+   {
+      complemented2_type<students_t_distribution<RealType,Policy>, RealType>
+         unscaled_c(c.dist.tDistribution(),c.param);
+      RealType tQuantile = quantile(unscaled_c);
+      return c.dist.scale()*tQuantile+c.dist.location();
+   }
 
 } // namespace math
 } // namespace boost
