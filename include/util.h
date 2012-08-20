@@ -19,7 +19,8 @@ namespace dec_brl
     * If this platform has infinity defined, we use it, otherwise we use the
     * maximum value for a given type. This decision is made at compile time.
     */
-   template<class RealType, bool test=std::numeric_limits<RealType>::has_infinity> struct Limits
+   template<class RealType,
+      bool test=std::numeric_limits<RealType>::has_infinity> struct Limits
    {
       static const RealType infinity();
    };

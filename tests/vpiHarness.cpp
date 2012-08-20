@@ -48,6 +48,12 @@ bool consistentVPI_m(const NormalGamma& paramDist, double vpi1, double vpi2)
    //***************************************************************************
    using namespace boost::math;
    NonCentralT meanMarginalDistribution = meanMarginal(paramDist);
+   if(!meanMarginalDistribution.hasVariance())
+   {
+      std::cout << "\nSkipping consistency check due to infinite "
+         "marginal variance." << std::endl;
+      return true;
+   }
    double stdevOfMean = standard_deviation(meanMarginalDistribution);
    double stdErr = stdevOfMean * STANDARD_ERROR_COEFFICIENT;
 
@@ -57,7 +63,7 @@ bool consistentVPI_m(const NormalGamma& paramDist, double vpi1, double vpi2)
    double diff = vpi1-vpi2;
    if( (diff > stdErr) || (diff < -stdErr) )
    {
-      std::cout << "Inconsistent VPI: vpi1=" << vpi1 << " vpi2=" << vpi2
+      std::cout << "\nInconsistent VPI: vpi1=" << vpi1 << " vpi2=" << vpi2
          << " differ by " << diff << std::endl;
       return false;
    }
@@ -67,7 +73,7 @@ bool consistentVPI_m(const NormalGamma& paramDist, double vpi1, double vpi2)
    //***************************************************************************
    if( (0>vpi1) || (0>vpi2) )
    {
-      std::cout << "Negative VPI: vpi1=" << vpi1 << " vpi2=" << vpi2
+      std::cout << "\nNegative VPI: vpi1=" << vpi1 << " vpi2=" << vpi2
          << std::endl;
       return false;
    }
@@ -90,17 +96,23 @@ bool testVPI(const NormalGamma& paramDist)
    double prevNotBestVPI = Limits<double>::infinity();
    for(double bestVal=-10; bestVal<10; bestVal+=0.25) 
    {
+      std::cout << "\nBestval: " << bestVal << ' ' << std::flush;
       //************************************************************************
       // Calculate VPI analytically (for both best action and other action)
       //************************************************************************
+      std::cout << "." << std::flush;
       double exactBestVPI = exactVPI(true, bestVal, bestVal, paramDist);
       double exactNotBestVPI = exactVPI(false, bestVal, bestVal, paramDist);
 
       //************************************************************************
       // Calculate VPI by sampling (for both best action and other action)
       //************************************************************************
+      std::cout << "." << std::flush;
       NonCentralT marginal = meanMarginal(paramDist);
-      NonCentralTRandom generator(marginal);
+      boost::mt19937 rng;
+      boost::variate_generator<boost::mt19937&, NonCentralT>
+         generator(rng,marginal);
+      std::cout << "." << std::flush;
       double sampledBestVPI = sampledVPI(true, bestVal, bestVal, generator);
       double sampledNotBestVPI = sampledVPI(false, bestVal, bestVal, generator);
 
@@ -108,16 +120,17 @@ bool testVPI(const NormalGamma& paramDist)
       // Check that sampled and exact calculations are consistent within
       // tolerance.
       //************************************************************************
+      std::cout << "." << std::flush;
       if(!consistentVPI_m(paramDist,sampledBestVPI,exactBestVPI))
       {
-         std::cout << "Sampled best VPI is inconsistent with exact best."
+         std::cout << "\nSampled best VPI is inconsistent with exact best."
             << std::endl;
          return false;
       }
 
       if(!consistentVPI_m(paramDist,sampledNotBestVPI,exactNotBestVPI))
       {
-         std::cout << "Sampled not best VPI is inconsistent with exact not"
+         std::cout << "\nSampled not best VPI is inconsistent with exact not"
             " best." << std::endl;
          return false;
       }
@@ -126,16 +139,17 @@ bool testVPI(const NormalGamma& paramDist)
       // Check that gain increases or decreases correctly depending on 
       // best (or 2nd best) value.
       //************************************************************************
+      std::cout << "." << std::flush;
       if(prevBestVPI > exactBestVPI)
       {
-         std::cout << "VPI for best action should be an increasing function "
+         std::cout << "\nVPI for best action should be an increasing function "
             " of the 2nd best action value." << std::endl;
          return false;
       }
 
       if(prevNotBestVPI < exactNotBestVPI)
       {
-         std::cout << "VPI for non best actions should be a decreasing "
+         std::cout << "\nVPI for non best actions should be a decreasing "
             "function of the 1st best action value: " <<
             prevNotBestVPI << " < " << exactNotBestVPI << std::endl;
          return false;
@@ -193,9 +207,14 @@ int main()
    
       //************************************************************************
       // Construct a normal-gamma distribution with default hyperparameters.
+      // Has to start with enough observations to make marginal variance
+      // finite.
       //************************************************************************
+      std::cout << "Initialising parameter distribution" << std::endl;
       NormalGamma paramDist;
-   
+      double observation = normrnd();
+      observe(paramDist,observation);
+
       //************************************************************************
       // Repeatedly update the normal-gamma distribution with observations from
       // the standard normal, and validate VPI after each observation.
@@ -206,10 +225,24 @@ int main()
       bool nonBestVPIChange=false;
       for(int sampleSize=0; sampleSize<60; ++sampleSize)
       {
+         std::cout << "******************************************" << std::endl;
+         std::cout << "ITERATION: " << sampleSize << std::endl;
+         std::cout << "******************************************" << std::endl;
+         //*********************************************************************
+         // Update the parameter distribution with a new standard normal
+         // observation. This should decrease the entropy of the parameter
+         // distribution.
+         //*********************************************************************
+         std::cout << "Generating new observation" << std::endl;
+         observation = normrnd();
+         std::cout << "Observing new observation" << std::endl;
+         observe(paramDist,observation);
+
          //*********************************************************************
          // Run batch of VPI tests given the current state of the parameter
          // distribution
          //*********************************************************************
+         std::cout << "Performing main tests" << std::flush;
          if(!testVPI(paramDist))
          {
             std::cout << "Main VPI tests failed at " << sampleSize
@@ -221,6 +254,7 @@ int main()
          // Calculate vpi exactly, and make sure it always gets smaller as the
          // number of observations increases.
          //*********************************************************************
+         std::cout << "Checking entropy gradient" << std::endl;
          double bestVPI = exactVPI(true,1.0,-1.0,paramDist);
          double notBestVPI = exactVPI(false,1.0,-1.0,paramDist);
    
@@ -250,14 +284,6 @@ int main()
             prevNotBestVPI = notBestVPI;
             nonBestVPIChange=true;
          }
-   
-         //*********************************************************************
-         // Update the parameter distribution with a new standard normal
-         // observation. This should decrease the entropy of the parameter
-         // distribution.
-         //*********************************************************************
-         double observation = normrnd();
-         observe(paramDist,observation);
    
       } // for loop
 

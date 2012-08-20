@@ -96,7 +96,7 @@ namespace dec_brl
     bool isBestAction,
     const RealType bestVal1,
     const RealType bestVal2,
-    const Rand& valDist,
+    Rand& valDist,
     const int noSamples=50
    )
    {
