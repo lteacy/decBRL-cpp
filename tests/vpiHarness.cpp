@@ -29,7 +29,7 @@ const int MC_SAMPLE_SIZE_M = 2500;
  * Value is defined as <CODE>1.96/sqrt(MC_SAMPLE_SIZE)</CODE>, where 
  * 1.96 is the 0.95 quantile for the standard normal distribution.
  */
-const double STANDARD_ERROR_COEFFICIENT = 1.96 / 50.0;
+const double STANDARD_ERROR_COEFFICIENT = 4.0 / 50.0;
 
 /**
  * For a given NormalGamma parameter distribtuion, returns true iff
@@ -113,8 +113,10 @@ bool testVPI(const NormalGamma& paramDist)
       boost::variate_generator<boost::mt19937&, NonCentralT>
          generator(rng,marginal);
       std::cout << "." << std::flush;
-      double sampledBestVPI = sampledVPI(true, bestVal, bestVal, generator);
-      double sampledNotBestVPI = sampledVPI(false, bestVal, bestVal, generator);
+      double sampledBestVPI = sampledVPI(true, bestVal, bestVal, generator,
+            MC_SAMPLE_SIZE_M);
+      double sampledNotBestVPI = sampledVPI(false, bestVal, bestVal, generator,
+            MC_SAMPLE_SIZE_M);
 
       //************************************************************************
       // Check that sampled and exact calculations are consistent within
@@ -221,6 +223,8 @@ int main()
       //************************************************************************
       double prevBestVPI = Limits<double>::infinity();
       double prevNotBestVPI = Limits<double>::infinity();
+      double prevVar = 0;
+      double entropyIncrease=true;
       bool bestVPIChange=false;
       bool nonBestVPIChange=false;
       for(int sampleSize=0; sampleSize<60; ++sampleSize)
@@ -236,7 +240,9 @@ int main()
          std::cout << "Generating new observation" << std::endl;
          observation = normrnd();
          std::cout << "Observing new observation" << std::endl;
+         prevVar = boost::math::variance(meanMarginal(paramDist));
          observe(paramDist,observation);
+         double curVar = boost::math::variance(meanMarginal(paramDist));
 
          //*********************************************************************
          // Run batch of VPI tests given the current state of the parameter
@@ -258,21 +264,28 @@ int main()
          double bestVPI = exactVPI(true,1.0,-1.0,paramDist);
          double notBestVPI = exactVPI(false,1.0,-1.0,paramDist);
    
-         if(bestVPI > prevBestVPI)
+         if( (bestVPI > prevBestVPI) != entropyIncrease )
          {
-            std::cout << "Best VPI should always decrease with entropy.\n";
+            std::cout << "Best VPI should always increase with entropy: "
+               << "prevVar: " << prevVar << " curVar: "
+               << curVar << " prevVPI: " << prevBestVPI
+               << " curVPI: " << bestVPI << std::endl;
             return EXIT_FAILURE;
          }
    
-         if(notBestVPI > prevNotBestVPI)
+         if( (notBestVPI > prevNotBestVPI) != entropyIncrease)
          {
-            std::cout << "Not-Best VPI should always decrease with entropy.\n";
+            std::cout << "Not-Best VPI should always increase with entropy: "
+               << "prevVar: " << prevVar << " curVar: "
+               << curVar << " prevVPI: " << prevNotBestVPI
+               << " curVPI: " << notBestVPI << std::endl;
             return EXIT_FAILURE;
          }
    
          //*********************************************************************
          // Store the current VPI values for later comparision.
          //*********************************************************************
+         entropyIncrease = (curVar > prevVar);
          if(prevBestVPI!=bestVPI)
          {
             prevBestVPI = bestVPI;
