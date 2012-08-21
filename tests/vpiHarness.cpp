@@ -223,15 +223,13 @@ int main()
       //************************************************************************
       double prevBestVPI = Limits<double>::infinity();
       double prevNotBestVPI = Limits<double>::infinity();
-      double prevVar = 0;
-      double entropyIncrease=true;
       bool bestVPIChange=false;
       bool nonBestVPIChange=false;
       for(int sampleSize=0; sampleSize<60; ++sampleSize)
       {
-         std::cout << "******************************************" << std::endl;
+         std::cout << "\n****************************************" << std::endl;
          std::cout << "ITERATION: " << sampleSize << std::endl;
-         std::cout << "******************************************" << std::endl;
+         std::cout << "****************************************" << std::endl;
          //*********************************************************************
          // Update the parameter distribution with a new standard normal
          // observation. This should decrease the entropy of the parameter
@@ -240,9 +238,7 @@ int main()
          std::cout << "Generating new observation" << std::endl;
          observation = normrnd();
          std::cout << "Observing new observation" << std::endl;
-         prevVar = boost::math::variance(meanMarginal(paramDist));
          observe(paramDist,observation);
-         double curVar = boost::math::variance(meanMarginal(paramDist));
 
          //*********************************************************************
          // Run batch of VPI tests given the current state of the parameter
@@ -257,35 +253,11 @@ int main()
          }
    
          //*********************************************************************
-         // Calculate vpi exactly, and make sure it always gets smaller as the
-         // number of observations increases.
+         // Store the current VPI values for later comparsion.
          //*********************************************************************
-         std::cout << "Checking entropy gradient" << std::endl;
          double bestVPI = exactVPI(true,1.0,-1.0,paramDist);
          double notBestVPI = exactVPI(false,1.0,-1.0,paramDist);
-   
-         if( (bestVPI > prevBestVPI) != (curVar > prevVar) )
-         {
-            std::cout << "Best VPI should always increase with entropy: "
-               << "prevVar: " << prevVar << " curVar: "
-               << curVar << " prevVPI: " << prevBestVPI
-               << " curVPI: " << bestVPI << std::endl;
-            return EXIT_FAILURE;
-         }
-   
-         if( (notBestVPI > prevNotBestVPI) != (curVar > prevVar) )
-         {
-            std::cout << "Not-Best VPI should always increase with entropy: "
-               << "prevVar: " << prevVar << " curVar: "
-               << curVar << " prevVPI: " << prevNotBestVPI
-               << " curVPI: " << notBestVPI << std::endl;
-            return EXIT_FAILURE;
-         }
-   
-         //*********************************************************************
-         // Store the current VPI values for later comparision.
-         //*********************************************************************
-         entropyIncrease = (curVar > prevVar);
+
          if(prevBestVPI!=bestVPI)
          {
             prevBestVPI = bestVPI;
