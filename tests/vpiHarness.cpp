@@ -264,7 +264,7 @@ int main()
          double bestVPI = exactVPI(true,1.0,-1.0,paramDist);
          double notBestVPI = exactVPI(false,1.0,-1.0,paramDist);
    
-         if( (bestVPI > prevBestVPI) != entropyIncrease )
+         if( (bestVPI > prevBestVPI) != (curVar > prevVar) )
          {
             std::cout << "Best VPI should always increase with entropy: "
                << "prevVar: " << prevVar << " curVar: "
@@ -273,7 +273,7 @@ int main()
             return EXIT_FAILURE;
          }
    
-         if( (notBestVPI > prevNotBestVPI) != entropyIncrease)
+         if( (notBestVPI > prevNotBestVPI) != (curVar > prevVar) )
          {
             std::cout << "Not-Best VPI should always increase with entropy: "
                << "prevVar: " << prevVar << " curVar: "
