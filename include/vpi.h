@@ -6,6 +6,7 @@
 #define DECBRL_VPI_H
 
 #include <cmath>
+#include <cassert>
 #include <limits>
 #include <boost/utility/enable_if.hpp>
 #include <boost/math/special_functions/gamma.hpp>
@@ -133,6 +134,7 @@ namespace dec_brl
       // Average by dividing by number of samples, and return the result
       //************************************************************************
       expGain /= noSamples;
+      assert(expGain>=0);
       return expGain;
 
    } // vpi function
@@ -176,12 +178,14 @@ namespace dec_brl
       {
          RealType result = truncationBias(dist,bestVal2);
          result += (bestVal2-dist.m()) * cdf(marginal,bestVal2);
+         assert(result>=0);
          return result;
       }
       else
       {
          RealType result = truncationBias(dist,bestVal1);
          result += (dist.m()-bestVal1) * cdf(complement(marginal,bestVal1));
+         assert(result>=0);
          return result;
       }
 
