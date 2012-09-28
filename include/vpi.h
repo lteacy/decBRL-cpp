@@ -53,6 +53,9 @@ namespace dec_brl
    {
       using namespace boost::math;
 
+      //************************************************************************
+      // When alpha<0.5, the gain is infinite.
+      //************************************************************************
       if(dist.alpha()<0.5)
       {
          return Limits<RealType>::infinity();
@@ -60,19 +63,39 @@ namespace dec_brl
 
       Policy policy; // Boost.Math policy used for calculations.
 
+      //************************************************************************
+      // Store parts in local variables for convenience
+      //************************************************************************
       const RealType alpha = dist.alpha();
       const RealType beta = dist.beta();
       const RealType lambda = dist.lambda();
       const RealType m = dist.m();
-      const RealType inbrackets = 1 + lambda*(x-m)*(x-m)/2.0/beta;
 
-      RealType result  = 1/tgamma<RealType,Policy>(0.5, policy);
-               result *= tgamma_ratio(alpha-0.5, alpha, policy);
-               result *= std::sqrt(alpha/2.0/lambda);
-               result *= std::pow(inbrackets,0.5-alpha);
+      //************************************************************************
+      // Calculate the in brackets part.
+      // Notice we use log1p which is a more numerically stable way to compute
+      // log(1+fraction)
+      //************************************************************************
+      RealType logfraction  = std::log(lambda)+2.0*std::log(std::abs(x-m));
+               logfraction -= std::log(2.0)+std::log(beta);
 
-      return result;
-   }
+      RealType logbrackets = log1p(std::exp(logfraction));
+
+      //************************************************************************
+      // Calculate log result for numerical stability.
+      //************************************************************************
+      RealType lnResult  = lgamma<RealType,Policy>(alpha-0.5, policy);
+               lnResult += 0.5*(std::log(beta)-std::log(2.0)-std::log(lambda));
+               lnResult += (0.5-alpha)*logbrackets;
+               lnResult -= lgamma<RealType,Policy>(alpha, policy);
+               lnResult -= lgamma<RealType,Policy>(0.5, policy);
+
+      //************************************************************************
+      // Return result
+      //************************************************************************
+      return std::exp(lnResult);
+
+   } // truncationBias
 
    /**
     * Calculates the Value of Perfect Information (VPI) using monte carlo
