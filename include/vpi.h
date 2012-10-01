@@ -42,7 +42,7 @@ namespace dec_brl
     * \f$\rho = \langle \alpha, \beta, \lambda, m \rangle \f$.
     * @param x input for return value \f$\mathcal{B}_{\rho}(x)\f$
     * @returns \f$\mathcal{B}_{\rho}(x)\f$ or the largest possible value if
-    * dist.alpha() < 0.5.
+    * dist.alpha < 0.5.
     * @see http://eprints.soton.ac.uk/273201/
     */
    template<class RealType, class Policy> RealType truncationBias 
@@ -56,7 +56,7 @@ namespace dec_brl
       //************************************************************************
       // When alpha<0.5, the gain is infinite.
       //************************************************************************
-      if(dist.alpha()<0.5)
+      if(dist.alpha<0.5)
       {
          return Limits<RealType>::infinity();
       }
@@ -66,10 +66,10 @@ namespace dec_brl
       //************************************************************************
       // Store parts in local variables for convenience
       //************************************************************************
-      const RealType alpha = dist.alpha();
-      const RealType beta = dist.beta();
-      const RealType lambda = dist.lambda();
-      const RealType m = dist.m();
+      const RealType alpha = dist.alpha;
+      const RealType beta = dist.beta;
+      const RealType lambda = dist.lambda;
+      const RealType m = dist.m;
 
       //************************************************************************
       // Calculate the in brackets part.
@@ -191,7 +191,7 @@ namespace dec_brl
       using namespace boost::math;
 
       // truncation bias undefined for alpha<0.5
-      if(dist.alpha()<0.5)
+      if(dist.alpha<0.5)
       {
          return Limits<RealType>::infinity();
       }
@@ -200,14 +200,14 @@ namespace dec_brl
       if(isBestAction)
       {
          RealType result = truncationBias(dist,bestVal2);
-         result += (bestVal2-dist.m()) * cdf(marginal,bestVal2);
+         result += (bestVal2-dist.m) * cdf(marginal,bestVal2);
          assert(result>=0);
          return result;
       }
       else
       {
          RealType result = truncationBias(dist,bestVal1);
-         result += (dist.m()-bestVal1) * cdf(complement(marginal,bestVal1));
+         result += (dist.m-bestVal1) * cdf(complement(marginal,bestVal1));
          assert(result>=0);
          return result;
       }

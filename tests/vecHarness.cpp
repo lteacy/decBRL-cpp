@@ -9,6 +9,7 @@
 #include "vpi.h"
 #include "NormalGamma.h"
 #include "DiscreteFunction.h"
+#include "DomainIterator.h"
 #include <iostream>
 #include <boost/random/variate_generator.hpp>
 #include <boost/random/normal_distribution.hpp>
@@ -57,6 +58,7 @@ int main()
       //************************************************************************
       maxsum::registerVariable(1,5);
       maxsum::registerVariable(2,4);
+      maxsum::registerVariable(3,2);
    
       //************************************************************************
       // Now we create a number parameter distributions:
@@ -69,6 +71,16 @@ int main()
       NormalGamma scalarParams1;
       NormalGamma scalarParams2;
       NormalGamma_Tmpl<maxsum::DiscreteFunction> vecParams;
+
+      //************************************************************************
+      // Try to expand domain of belief distribution
+      //************************************************************************
+      expand(vecParams,1);
+      maxsum::VarID otherVars[] = {2,3};
+      expand(vecParams,otherVars,otherVars+2);
+      maxsum::ValIndex index = vecParams.m.domainSize()/2;
+
+      std::cout << "selected index for dual update: " << index << std::endl;
 
       //************************************************************************
       // Repeatedly update the normal-gamma distribution with observations from
@@ -98,7 +110,44 @@ int main()
          observe(scalarParams2,obs1);
          observe(scalarParams2,obs2);
          observe(vecParams,obs1);
-         observe(vecParams,obs2);
+         observe(vecParams,index,obs2);
+
+         //*********************************************************************
+         // Check hyperparameters for consistency
+         //*********************************************************************
+         std::cout << "Check hyperparameter consistency" << std::endl;
+         for(int k=0; k<vecParams.m.domainSize(); ++k)
+         {
+            NormalGamma* pCorrect = &scalarParams1;
+            if(k==index)
+            {
+               pCorrect = &scalarParams2;
+            }
+
+            if(vecParams.alpha(k)!=pCorrect->alpha)
+            {
+               std::cout << "Incorrect at alpha location " << k << std::endl;
+               return EXIT_FAILURE;
+            }
+
+            if(vecParams.beta(k)!=pCorrect->beta)
+            {
+               std::cout << "Incorrect beta at location " << k << std::endl;
+               return EXIT_FAILURE;
+            }
+
+            if(vecParams.lambda(k)!=pCorrect->lambda)
+            {
+               std::cout << "Incorrect lambda at location " << k << std::endl;
+               return EXIT_FAILURE;
+            }
+
+            if(vecParams.m(k)!=pCorrect->m)
+            {
+               std::cout << "Incorrect mean at location " << k << std::endl;
+               return EXIT_FAILURE;
+            }
+         }
 
       } // for loop
 
