@@ -48,10 +48,11 @@ endif(DOXYGEN_FOUND)
 # set the output directories
 SET(LIBRARY_OUTPUT_PATH ${LIB} CACHE PATH "Output directory for the libraries")
 SET(EXECUTABLE_OUTPUT_PATH ${BIN} CACHE PATH "Output directory for the executables")
+SET(MAXSUM_ROOT ${CMAKE_SOURCE_DIR}/../maxsum-cpp)
 
 # allow linking to these directories
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include ${Boost_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIR})
-LINK_DIRECTORIES(${LIBRARY_OUTPUT_PATH})
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include ${Boost_INCLUDE_DIRS} ${MAXSUM_ROOT}/include)
+LINK_DIRECTORIES(${LIBRARY_OUTPUT_PATH} ${MAXSUM_ROOT}/lib)
 
 ############################
 # make an uninstall target #
@@ -78,13 +79,16 @@ TARGET_LINK_LIBRARIES(DecBRL ${Boost_LIBRARIES})
 ###############################
 ADD_EXECUTABLE(mdpHarness tests/mdpHarness.cpp)
 ADD_EXECUTABLE(vpiHarness tests/vpiHarness.cpp)
+ADD_EXECUTABLE(vecHarness tests/vecHarness.cpp)
 TARGET_LINK_LIBRARIES(mdpHarness DecBRL)
 TARGET_LINK_LIBRARIES(vpiHarness DecBRL)
+TARGET_LINK_LIBRARIES(vecHarness MaxSum DecBRL)
 
 ###############################
 # enable testing              #
 ###############################
 ENABLE_TESTING()
 ADD_TEST(MDP_TEST ${CMAKE_SOURCE_DIR}/bin/mdpHarness)
+ADD_TEST(VEC_TEST ${CMAKE_SOURCE_DIR}/bin/vecHarness)
 ADD_TEST(VPI_TEST ${CMAKE_SOURCE_DIR}/bin/vpiHarness)
 
