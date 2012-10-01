@@ -106,6 +106,26 @@ namespace dist {
       : alpha_i(a), beta_i(b), lambda_i(l), m_i(m) {}
 
       /**
+       * Copy constructor.
+       */
+      NormalGamma_Tmpl(const NormalGamma_Tmpl& x)
+      : alpha_i(x.alpha_i), beta_i(x.beta_i), lambda_i(x.lambda_i),
+        m_i(x.m_i) {}
+
+      /**
+       * Copy assignment.
+       */
+      NormalGamma_Tmpl& operator=(const NormalGamma_Tmpl& x)
+      {
+          alpha_i = x.alpha_i;
+           beta_i = x.beta_i;
+         lambda_i = x.lambda_i;
+              m_i = x.m_i;
+
+         return *this;     
+      }
+
+      /**
        * Accessor method for alpha hyperparameter.
        */
       RealType alpha() const { return alpha_i; }

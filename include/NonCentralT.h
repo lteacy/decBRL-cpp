@@ -122,12 +122,20 @@ namespace dist {
    }; // class Scaled
 
    /**
+    * Base class used to identify Non-Central T distributions.
+    * Currently this class serves no other purpose than to help in template
+    * selection. It is therefore only used at compile time, and has no
+    * affect at runtime.
+    */
+   class AbstractNonCentralT {};
+
+   /**
     * Class Representing non-central Student's t distribution with
     * location and scale parameters. This class is defined using the
     * conventions and concepts of the boost math libraries.
     */
    template<class RealType=double,class Policy=boost::math::policies::policy<> >
-   class NonCentralT_Tmpl : public
+   class NonCentralT_Tmpl : public AbstractNonCentralT, public
       Scaled<boost::math::students_t_distribution<RealType, Policy>, RealType>
    {
    private:
@@ -251,12 +259,43 @@ namespace math
     * @returns the variance of the non-central t distribution.
     */
    template <class Dist>
-   typename Dist::base_type::value_type variance
+   typename boost::enable_if
+   <boost::is_base_of<dec_brl::dist::AbstractNonCentralT,Dist>,
+   typename Dist::base_type::value_type>::type variance
    (
     const Dist& dist
    )
    {
-      return dist.scale()*dist.scale()*variance(dist.base());
+      typedef typename Dist::base_type::value_type RealType;
+
+      if(dist.degrees_of_freedom()<2)
+      {
+         return dec_brl::Limits<RealType>::infinity();
+      }
+
+      RealType result = dist.scale()*dist.scale()*variance(dist.base());
+      assert(result>0);
+      return result;
+   }
+
+   /**
+    * Overloads the Boost.Math library variance function for
+    * Scaled distributions.
+    * @pre degrees of freedom must be greater than 2.
+    * @returns the variance of the non-central t distribution.
+    */
+   template <class Dist>
+   typename boost::disable_if
+   <boost::is_base_of<dec_brl::dist::AbstractNonCentralT,Dist>,
+   typename Dist::base_type::value_type>::type variance
+   (
+    const Dist& dist
+   )
+   {
+      typedef typename Dist::base_type::value_type RealType;
+      RealType result = dist.scale()*dist.scale()*variance(dist.base());
+      assert(result>0);
+      return result;
    }
 
    /**
@@ -265,12 +304,42 @@ namespace math
     * @returns the standard deviation of the non-central t distribution.
     */
    template <class Dist>
-   typename Dist::base_type::value_type standard_deviation
+   typename boost::disable_if
+   <boost::is_base_of<dec_brl::dist::AbstractNonCentralT,Dist>,
+   typename Dist::base_type::value_type>::type standard_deviation
    (
     const Dist& dist
    )
    {
-      return dist.scale()*standard_deviation(dist.base());
+      typedef typename Dist::base_type::value_type RealType;
+      RealType result = dist.scale()*standard_deviation(dist.base());
+      assert(result>0);
+      return result;
+   }
+
+   /**
+    * Overloads the Boost.Math library standard_deviation function for
+    * NonCentralT distributions.
+    * @returns the standard deviation of the non-central t distribution.
+    */
+   template <class Dist>
+   typename boost::enable_if
+   <boost::is_base_of<dec_brl::dist::AbstractNonCentralT,Dist>,
+   typename Dist::base_type::value_type>::type standard_deviation
+   (
+    const Dist& dist
+   )
+   {
+      typedef typename Dist::base_type::value_type RealType;
+
+      if(dist.degrees_of_freedom()<2)
+      {
+         return dec_brl::Limits<RealType>::infinity();
+      }
+
+      RealType result = dist.scale()*standard_deviation(dist.base());
+      assert(result>0);
+      return result;
    }
 
    /**
