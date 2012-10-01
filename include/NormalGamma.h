@@ -229,8 +229,8 @@ namespace dist {
     * @param paramDist the parameter distribution to update.
     * @param[in] x an observation drawn from the target distribution.
     */
-   template<class RealType, class Policy> void observe
-      (NormalGamma_Tmpl<RealType,Policy>& paramDist, RealType x)
+   template<class RealType, class ValType, class Policy> void observe
+      (NormalGamma_Tmpl<RealType,Policy>& paramDist, ValType x)
    {
       RealType oldAlpha = paramDist.alpha();
       RealType oldBeta = paramDist.beta();
@@ -240,7 +240,7 @@ namespace dist {
       RealType newAlpha = oldAlpha + 0.5;
       RealType newLambda = oldLambda + 1;
       RealType newM = (oldLambda*oldM + x) / newLambda;
-      RealType newBeta = oldBeta + oldLambda*(x-oldM)*(x-oldM)/2.0/newLambda;
+      RealType newBeta = oldBeta + oldLambda*(oldM-x)*(oldM-x)/2.0/newLambda;
 
       paramDist.alpha(newAlpha);
       paramDist.beta(newBeta);
