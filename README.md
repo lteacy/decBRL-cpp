@@ -14,9 +14,13 @@ doxygen is required to compile documentation in html. In addition, LaTeX is requ
 Installation
 ============
 Install CMake (see http://www.cmake.org/) and follow the general instructions for building CMake projects for your platform.
-For example, on most unix-like platforms (including Mac OS X) it is usually sufficient to run the following commands:
+Install the maxsum-cpp library. At the moment the build assumes that both decBRL-cpp and maxsum-cpp are located in the same directory.
+Now build decBRL-cpp using cmake. For example, on most unix-like platforms (including Mac OS X) it is usually sufficient to run the following commands:
 
-    cd decBRL-cpp
+    cd maxsum-cpp
+    cmake .
+    make
+    cd ../decBRL-cpp
     cmake .
     make
 
