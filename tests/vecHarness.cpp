@@ -161,8 +161,8 @@ int main()
    //***************************************************************************
    // If we get this far, everything is ok.
    //***************************************************************************
-   std::cout << "Test harness not yet implemented." << std::endl;
-   return EXIT_FAILURE;
+   std::cout << "Passed." << std::endl;
+   return EXIT_SUCCESS;
 
 } // function main
 
