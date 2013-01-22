@@ -230,6 +230,7 @@ public:
             int domainSize = maxsum::getDomainSize(curAction);
             actions[curAction] = random::unidrnd(0,domainSize-1);
          }
+         return;
       }
 
       //************************************************************************
