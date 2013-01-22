@@ -6,8 +6,8 @@
 #include <limits>
 #include <exception>
 #include <cfloat>
-#include "vpi.h"
-#include "NormalGamma.h"
+#include "dec_brl/vpi.h"
+#include "dec_brl/NormalGamma.h"
 #include "DiscreteFunction.h"
 #include "DomainIterator.h"
 #include <iostream>

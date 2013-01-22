@@ -1,8 +1,11 @@
 #ifndef DEC_BRL_DEC_Q_LEARNER_H
 #define DEC_BRL_DEC_Q_LEARNER_H
 
-#include "random.h"
+#include "dec_brl/random.h"
 #include "MaxSumController.h"
+#include <set>
+#include <list>
+#include <algorithm>
 
 namespace dec_brl {
 
@@ -39,6 +42,19 @@ private:
    maxsum::MaxSumController maxsum_i;
 
    /**
+    * Specifies the variables that we think are actions.
+    * Essentially, all variables, that were not specified as states
+    * during the first call to act
+    */
+   std::list<maxsum::VarID> actionSet_i;
+
+   /**
+    * True iff this object is fully initialised.
+    * At the moment, that means that act as been called at least once.
+    */
+   bool isInitialised_i;
+
+   /**
     * Estimated Q-values stored as DiscreteFunctions.
     */
    std::vector<maxsum::DiscreteFunction> qValues_i;
@@ -61,7 +77,7 @@ public:
    static const double DEFAULT_EPSILON;
 
    /**
-    * Constructor.
+    * Default Constructor.
     * 
     */
    DecQLearner
@@ -72,9 +88,34 @@ public:
     int maxIterations=maxsum::MaxSumController::DEFAULT_MAX_ITERATIONS,
     maxsum::ValType maxnorm=maxsum::MaxSumController::DEFAULT_MAXNORM_THRESHOLD
    )
-   : alpha_i(alpha), gamma_i(gamma_i), epsilon_i(epsilon),
-     maxsum_i(maxIterations,maxnorm), qValues_i()
+   : alpha_i(alpha), gamma_i(gamma), epsilon_i(epsilon),
+     maxsum_i(maxIterations,maxnorm), actionSet_i(), isInitialised_i(false),
+     qValues_i()
    {}
+
+   /**
+    * (Deep) Copy constructor.
+    */
+   DecQLearner(const DecQLearner& rhs)
+   : alpha_i(rhs.alpha_i), gamma_i(rhs.gamma_i), epsilon_i(rhs.epsilon_i),
+     maxsum_i(rhs.maxsum_i), actionSet_i(rhs.actionSet_i), 
+     isInitialised_i(rhs.isInitialised_i), qValues_i(rhs.qValues_i)
+   {}
+
+   /**
+    * (Deep) Copy assignment.
+    */
+   DecQLearner& operator=(const DecQLearner& rhs)
+   {
+      alpha_i = rhs.alpha_i;
+      gamma_i = rhs.gamma_i;
+      epsilon_i = rhs.epsilon_i;
+      maxsum_i = rhs.maxsum_i;
+      actionSet_i = rhs.actionSet_i;
+      isInitialised_i = rhs.isInitialised_i;
+      qValues_i = rhs.qValues_i;
+      return *this;
+   }
 
    /**
     * Adds a Q-Value factor to the factor graph.
@@ -98,9 +139,14 @@ public:
    (
     maxsum::FactorID factor,
     VarIt varBegin,
-    VarIt varEnd,
+    VarIt varEnd
    )
    {
+      //************************************************************************
+      // Map the specified Q-value factor to a function that depends only on
+      // the specified list of variables. All values are initially zero.
+      //************************************************************************
+      qValues_i[factor] = maxsum::DiscreteFunction(varBegin,varEnd,0.0);
 
    } // addFactor
 
@@ -126,13 +172,65 @@ public:
    )
    {
       //************************************************************************
+      // If this is the first call to act, construct the action set, from the
+      // combined domain of all factors minus the specified states.
+      //************************************************************************
+      if(!isInitialised_i)
+      {
+         //*********************************************************************
+         // Construct set of all variables
+         //*********************************************************************
+         std::set<maxsum::VarID> allVars;
+         for(int k=0; k<qValues_i.size(); ++k)
+         {
+            const maxsum::DiscreteFunction& fun = qValues_i[k];
+            allVars.insert(fun.varBegin(),fun.varEnd());
+         }
+
+         //*********************************************************************
+         // Construct set of all states
+         //*********************************************************************
+         std::set<maxsum::VarID> stateSet;
+         for(typename StateMap::const_iterator it=states.begin();
+               it!=states.end(); ++it)
+         {
+            stateSet.insert(it->first);
+         }
+
+         //*********************************************************************
+         // The action set is then the set difference.
+         // Apparently, the set_difference ensures that actionSet_i will be
+         // sorted (assuming all lists are initially sorted).
+         //*********************************************************************
+         std::set_difference(allVars.begin(),allVars.end(),
+               stateSet.begin(),stateSet.end(),actionSet_i.begin());
+
+         //*********************************************************************
+         // Make sure we only do this once
+         //*********************************************************************
+         isInitialised_i = true;
+
+      } // if statement
+
+      //************************************************************************
       // Flip a coin to decide whether to explore (with probablity epsilon)
       // or to exploit by acting greedily w.r.t. to current estimate.
       //************************************************************************
+      bool doExplore = random::unirnd()<=epsilon_i;
 
       //************************************************************************
       // If this is an exploratory move, just choose random actions
       //************************************************************************
+      if(doExplore)
+      {
+         for(std::list<maxsum::VarID>::const_iterator it=actionSet_i.begin();
+               it!=actionSet_i.end(); ++it)
+         {
+            maxsum::VarID curAction = *it;
+            int domainSize = maxsum::getDomainSize(curAction);
+            actions[curAction] = random::unidrnd(0,domainSize-1);
+         }
+      }
 
       //************************************************************************
       // Otherwise, condition the MaxSumController on the current states.
@@ -187,11 +285,26 @@ public:
          //*********************************************************************
          // Update the estimate with the current reward
          //*********************************************************************
-         curFactor(allVars) = curReward; // assuming we implement element access via pair collections
+         //curFactor(allVars) = curReward; // assuming we implement element access via pair collections
 
    } // observe
 
 }; // class DecQLearner
+
+/**
+ * Default weight to place in new reward estimates.
+ */
+const double DecQLearner::DEFAULT_ALPHA = 0.1;
+
+/**
+ * Default MDP discount factor for future rewards.
+ */
+const double DecQLearner::DEFAULT_GAMMA = 0.95;
+
+/**
+ * Default Probability of choosing explortory (random) actions.
+ */
+const double DecQLearner::DEFAULT_EPSILON = 0.1;
 
 } // namespace dec_brl
 

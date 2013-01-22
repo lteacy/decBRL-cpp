@@ -80,9 +80,11 @@ TARGET_LINK_LIBRARIES(DecBRL ${Boost_LIBRARIES})
 ADD_EXECUTABLE(mdpHarness tests/mdpHarness.cpp)
 ADD_EXECUTABLE(vpiHarness tests/vpiHarness.cpp)
 ADD_EXECUTABLE(vecHarness tests/vecHarness.cpp)
+ADD_EXECUTABLE(colourHarness tests/colourHarness.cpp)
 TARGET_LINK_LIBRARIES(mdpHarness DecBRL)
 TARGET_LINK_LIBRARIES(vpiHarness DecBRL)
 TARGET_LINK_LIBRARIES(vecHarness MaxSum DecBRL)
+TARGET_LINK_LIBRARIES(colourHarness MaxSum DecBRL)
 
 ###############################
 # enable testing              #
@@ -91,4 +93,5 @@ ENABLE_TESTING()
 ADD_TEST(MDP_TEST ${CMAKE_SOURCE_DIR}/bin/mdpHarness)
 ADD_TEST(VEC_TEST ${CMAKE_SOURCE_DIR}/bin/vecHarness)
 ADD_TEST(VPI_TEST ${CMAKE_SOURCE_DIR}/bin/vpiHarness)
+ADD_TEST(COLOUR_TEST ${CMAKE_SOURCE_DIR}/bin/colourHarness)
 

@@ -1,9 +1,9 @@
-#ifndef MDP_SIM_SIMPLE_MDP_H
-#define MDP_SIM_SIMPLE_MDP_H
+#ifndef DEC_BRL_SIMPLE_MDP_H
+#define DEC_BRL_SIMPLE_MDP_H
 
 #include<vector>
 
-namespace mdp_sim
+namespace dec_brl
 {
 
    /**
@@ -57,6 +57,6 @@ namespace mdp_sim
 
    }; // class SimpleMDP
 
-} // namespace mdp_sim
+} // namespace dec_brl
 
-#endif // MDP_SIM_SIMPLE_MDP_H
+#endif // DEC_BRL_SIMPLE_MDP_H

@@ -8,7 +8,8 @@
 #include <ctime>
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int_distribution.hpp>
-#include "random.h"
+#include <boost/random/uniform_01.hpp>
+#include "dec_brl/random.h"
 
 /**
  * Module namespace defines objects used for random
@@ -23,7 +24,7 @@ namespace
 /**
  * Initialise random generator using time dependent seed.
  */
-void mdp_sim::random::initRandomEngineByTime()
+void dec_brl::random::initRandomEngineByTime()
 {
    gen_m.seed(std::time(0));
 }
@@ -35,10 +36,18 @@ void mdp_sim::random::initRandomEngineByTime()
  * @param max maximum generated value
  * @return random integer x, s.t. min <= x <= max
  */
-int mdp_sim::random::unidrnd(int min, int max)
+int dec_brl::random::unidrnd(int min, int max)
 {
    boost::random::uniform_int_distribution<> dist(min, max);
    return dist(gen_m);
 }
 
+/**
+ * Generate a uniform random number in the range [0,1).
+ */
+double dec_brl::random::unirnd()
+{
+   boost::random::uniform_01<> dist;
+   return dist(gen_m);
+}
 
