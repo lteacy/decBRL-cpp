@@ -55,9 +55,14 @@ private:
    bool isInitialised_i;
 
    /**
+    * Convenience type def for Factor maps
+    */
+   typedef std::map<maxsum::FactorID, maxsum::DiscreteFunction> FactorMap;
+
+   /**
     * Estimated Q-values stored as DiscreteFunctions.
     */
-   std::vector<maxsum::DiscreteFunction> qValues_i;
+   FactorMap qValues_i;
 
 public:
 
@@ -181,9 +186,10 @@ public:
          // Construct set of all variables
          //*********************************************************************
          std::set<maxsum::VarID> allVars;
-         for(int k=0; k<qValues_i.size(); ++k)
+         for(FactorMap::const_iterator it=qValues_i.begin();
+               it!=qValues_i.end(); ++it)
          {
-            const maxsum::DiscreteFunction& fun = qValues_i[k];
+            const maxsum::DiscreteFunction& fun = it->second;
             allVars.insert(fun.varBegin(),fun.varEnd());
          }
 
@@ -236,10 +242,18 @@ public:
       //************************************************************************
       // Otherwise, condition the MaxSumController on the current states.
       //************************************************************************
+      maxsum::DiscreteFunction curFactor;
+      for(FactorMap::const_iterator it=qValues_i.begin();
+            it!=qValues_i.end(); ++it)
+      {
+         maxsum::condition(it->second,curFactor,states);
+         maxsum_i.setFactor(it->first,curFactor);
+      }
 
       //************************************************************************
       // Run max-sum to optimise the set of actions
       //************************************************************************
+      //maxsum_i.optimise();
 
       //************************************************************************
       // Populate the action map with the optimised actions.
