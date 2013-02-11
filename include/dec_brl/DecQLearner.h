@@ -201,6 +201,7 @@ public:
                it!=states.end(); ++it)
          {
             stateSet.insert(it->first);
+            allVars.insert(it->first);
          }
 
          //*********************************************************************
@@ -208,8 +209,35 @@ public:
          // Apparently, the set_difference ensures that actionSet_i will be
          // sorted (assuming all lists are initially sorted).
          //*********************************************************************
-         std::set_difference(allVars.begin(),allVars.end(),
-               stateSet.begin(),stateSet.end(),actionSet_i.begin());
+         //std::set_difference(allVars.begin(),allVars.end(),
+          //     stateSet.begin(),stateSet.end(),actionSet_i.begin());
+         std::set_difference(stateSet.begin(),stateSet.end(),
+               allVars.begin(),allVars.end(),actionSet_i.begin());
+
+         //TODO strip out this code!
+         std::cout << "allVars = ["; 
+         for(std::set<maxsum::VarID>::const_iterator it=allVars.begin();
+               it!=allVars.end(); ++it)
+         {
+            std::cout << *it << ",";
+         }
+         std::cout << "]" << std::endl;
+
+         std::cout << "states = ["; 
+         for(std::set<maxsum::VarID>::const_iterator it=stateSet.begin();
+               it!=stateSet.end(); ++it)
+         {
+            std::cout << *it << ",";
+         }
+         std::cout << "]" << std::endl;
+
+         std::cout << "actions = ["; 
+         for(std::list<maxsum::VarID>::const_iterator it=actionSet_i.begin();
+               it!=actionSet_i.end(); ++it)
+         {
+            std::cout << *it << ",";
+         }
+         std::cout << "]" << std::endl;
 
          //*********************************************************************
          // Make sure we only do this once
@@ -258,6 +286,8 @@ public:
       //************************************************************************
       // Populate the action map with the optimised actions.
       //************************************************************************
+      actions.clear();
+      actions.insert(maxsum_i.valBegin(),maxsum_i.valEnd());
 
    } // act
 

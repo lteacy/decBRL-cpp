@@ -309,6 +309,9 @@ int testLearner_m(DecQLearner learner, const FactorMap_m& factors)
       //************************************************************************
       // Tell the learner which variables we think are states
       //************************************************************************
+      // Currently this step is done 'just in time' by act function, but we
+      // may want to refactor this step into a separate function and call it
+      // here.
 
       //************************************************************************
       // We also need a map to hold the observed factored rewards
@@ -340,6 +343,24 @@ int testLearner_m(DecQLearner learner, const FactorMap_m& factors)
          learner.act(states,actions);
 
          //*********************************************************************
+         // Display states and actions
+         //*********************************************************************
+         typedef std::map<VarID,ValIndex>::const_iterator Iterator;
+         std::cout << "Number of states: " << states.size() << std::endl;
+         for(Iterator it=states.begin(); it!=states.end(); ++it)
+         {
+            std::cout << "STATE[" << it->first << "]=" << it->second
+                      << std::endl;
+         }
+
+         std::cout << "Number of actions: " << actions.size() << std::endl;
+         for(Iterator it=actions.begin(); it!=actions.end(); ++it)
+         {
+            std::cout << "ACTIONS[" << it->first << "]=" << it->second
+                      << std::endl;
+         }
+
+         //*********************************************************************
          // Calculate the union of states and actions
          //*********************************************************************
          std::map<VarID,ValIndex> allVars;
@@ -348,12 +369,12 @@ int testLearner_m(DecQLearner learner, const FactorMap_m& factors)
 
          //*********************************************************************
          // Check that the learner hasn't treated any states as actions
-         // (true iff size of state and action sets is additive)
+         // (true iff size of state and action sets sum up to size of union)
          //*********************************************************************
          if(allVars.size() != (states.size()+actions.size()))
          {
             ++errorCount;
-            std::cout << "Learner things some states are actions." << std::endl;
+            std::cout << "Learner thinks some states are actions." << std::endl;
          }
 
          //*********************************************************************
