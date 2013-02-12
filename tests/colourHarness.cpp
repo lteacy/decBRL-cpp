@@ -303,8 +303,10 @@ int testLearner_m(DecQLearner learner, const FactorMap_m& factors)
       // as action variables. With this in mind, we create a variable map to
       // hold random states, and chosen actions.
       //************************************************************************
-      std::map<VarID,ValIndex> states; // used to hold current states
+      std::map<VarID,ValIndex> priorStates; // used to hold prior states
+      std::map<VarID,ValIndex> postStates; // used to hold post action states
       std::map<VarID,ValIndex> actions; // used to hold chosen actions
+      std::map<FactorID,double> rewards; // used to hold observed rewards
 
       //************************************************************************
       // Tell the learner which variables we think are states
@@ -314,9 +316,13 @@ int testLearner_m(DecQLearner learner, const FactorMap_m& factors)
       // here.
 
       //************************************************************************
-      // We also need a map to hold the observed factored rewards
+      // Start with some random post states - these become the prior 
+      // states as soon as we enter the first iteration.
       //************************************************************************
-      std::map<FactorID,double> rewards;
+      for(int s=0; s<=10; s+=2)
+      {
+         postStates[s] = std::rand() % N_COLOURS;
+      }
 
       //************************************************************************
       // Run through a few learning iterations with this learner and factor
@@ -329,25 +335,24 @@ int testLearner_m(DecQLearner learner, const FactorMap_m& factors)
          std::cout << "ITERATION: " << k << std::endl;
 
          //*********************************************************************
-         // Populate the state map with random colours
+         // Post states from previous round now become prior states for this
+         // round.
          //*********************************************************************
-         for(int s=0; s<=10; s+=2)
-         {
-            states[s] = (std::rand()*N_COLOURS)/RAND_MAX;
-         }
+         postStates.swap(priorStates);
 
          //*********************************************************************
          // Ask learner to choose actions (action map will be populated by
          // learner).
          //*********************************************************************
-         learner.act(states,actions);
+         std::cout << "ACTION CHOSEN USING " << learner.act(priorStates,actions)
+            << " MAXSUM ITERATIONS." << std::endl;
 
          //*********************************************************************
          // Display states and actions
          //*********************************************************************
          typedef std::map<VarID,ValIndex>::const_iterator Iterator;
-         std::cout << "Number of states: " << states.size() << std::endl;
-         for(Iterator it=states.begin(); it!=states.end(); ++it)
+         std::cout << "Number of states: " << priorStates.size() << std::endl;
+         for(Iterator it=priorStates.begin(); it!=priorStates.end(); ++it)
          {
             std::cout << "STATE[" << it->first << "]=" << it->second
                       << std::endl;
@@ -364,14 +369,14 @@ int testLearner_m(DecQLearner learner, const FactorMap_m& factors)
          // Calculate the union of states and actions
          //*********************************************************************
          std::map<VarID,ValIndex> allVars;
-         allVars.insert(states.begin(),states.end());
+         allVars.insert(priorStates.begin(),priorStates.end());
          allVars.insert(actions.begin(),actions.end());
 
          //*********************************************************************
          // Check that the learner hasn't treated any states as actions
          // (true iff size of state and action sets sum up to size of union)
          //*********************************************************************
-         if(allVars.size() != (states.size()+actions.size()))
+         if(allVars.size() != (priorStates.size()+actions.size()))
          {
             ++errorCount;
             std::cout << "Learner thinks some states are actions." << std::endl;
@@ -388,9 +393,17 @@ int testLearner_m(DecQLearner learner, const FactorMap_m& factors)
          }
 
          //*********************************************************************
+         // Populate the posterior state map with random colours
+         //*********************************************************************
+         for(int s=0; s<=10; s+=2)
+         {
+            postStates[s] = std::rand() % N_COLOURS;
+         }
+
+         //*********************************************************************
          // Let the learner observe the factored rewards
          //*********************************************************************
-         learner.observe(states,rewards);
+         learner.observe(priorStates,actions,postStates,rewards);
 
       } // outer for loop
 

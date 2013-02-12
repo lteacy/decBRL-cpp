@@ -156,6 +156,114 @@ public:
    } // addFactor
 
    /**
+    * Tells this learner which variables to treat as states. State variables
+    * are not max marginalised, and must have assigned values passed into
+    * the act member function. This function is called 'Just In Time' by
+    * act function, but may be called before hand to reduce computational
+    * overhead when choosing the first action. This function should
+    * only be called at most once: after construction, but before the first
+    * call to act.
+    * @param[in] stateBegin iterator to the start of the set of states.
+    * @param[in] stateEnd iterator to the end of the set of states.
+    * @pre the set of states specified by begin and end must be sorted in
+    * ascending order. 
+    */
+   template<class Iterator> void setStates
+   (
+    Iterator stateBegin,
+    Iterator stateEnd
+   )
+   {
+      //************************************************************************
+      // Only proceed if this Learner has not already been initialised.
+      //************************************************************************
+      if(isInitialised_i)
+      {
+         return;
+      }
+
+      //************************************************************************
+      // Construct set of all variables
+      //************************************************************************
+      std::set<maxsum::VarID> allVars;
+      for(FactorMap::const_iterator it=qValues_i.begin();
+            it!=qValues_i.end(); ++it)
+      {
+         const maxsum::DiscreteFunction& fun = it->second;
+         allVars.insert(fun.varBegin(),fun.varEnd());
+      }
+
+      //************************************************************************
+      // The action set is then the set difference.
+      // Apparently, the set_difference ensures that actionSet_i will be
+      // sorted (assuming all lists are initially sorted).
+      //************************************************************************
+      std::set_difference(allVars.begin(), allVars.end(), stateBegin, stateEnd,
+            std::inserter(actionSet_i, actionSet_i.begin()));
+
+      //************************************************************************
+      // Make sure we only do this once
+      //************************************************************************
+      isInitialised_i = true;
+
+   } // setStates function
+
+   /**
+    * Return the next actions selected by the Q-Learner.
+    * This is equivalent to the act member function, except that
+    * actions are always selected greedily w.r.t to the current Q-value
+    * estimate, and so exploration is never performed.
+    * Current states are specified in a read-only map, while actions
+    * are specified through a writable map passed as a parameter.
+    * The minimum requirement for the state and action map types is that
+    * they implement operator[], begin(), and end() with the same semantics
+    * as std::map<maxsum::VarID,maxsum::ValIndex>. Obviously, this type will
+    * do nicely, but the user is free to provide their own compatible type.
+    * @tparam ActionMap type of map used to store action selections
+    * @tparam StateMap type of map used to store current states
+    * @param[in] map of state variable ids to their current values.
+    * @param[out] map that will be populated with action values.
+    * @pre states contains mapped values for each state.
+    * @post each action variable will be mapped to its selected value.
+    * @returns the number of max-sum iterations performs (0 means this was an
+    * exploratory move).
+    */
+   template<class ActionMap, class StateMap> int actGreedy
+   (
+    const StateMap& states,
+    ActionMap& actions
+   )
+   {
+      //************************************************************************
+      // Condition the MaxSumController on the current states.
+      //************************************************************************
+      maxsum::DiscreteFunction curFactor;
+      for(FactorMap::const_iterator it=qValues_i.begin();
+            it!=qValues_i.end(); ++it)
+      {
+         maxsum::condition(it->second,curFactor,states);
+         maxsum_i.setFactor(it->first,curFactor);
+      }
+
+      //************************************************************************
+      // Run max-sum to optimise the set of actions
+      //************************************************************************
+      int msIterationCount = maxsum_i.optimise();
+
+      //************************************************************************
+      // Populate the action map with the optimised actions.
+      //************************************************************************
+      actions.clear();
+      actions.insert(maxsum_i.valBegin(),maxsum_i.valEnd());
+
+      //************************************************************************
+      // For diagnostic purposes, also return number of max-sum iterations.
+      //************************************************************************
+      return msIterationCount;
+
+   } // actGreedy function
+
+   /**
     * Return the next actions selected by the Q-Learner
     * Current states are specified in a read-only map, while actions
     * are specified through a writable map passed as a parameter.
@@ -169,8 +277,10 @@ public:
     * @param[out] map that will be populated with action values.
     * @pre states contains mapped values for each state.
     * @post each action variable will be mapped to its selected value.
+    * @returns the number of max-sum iterations performs (0 means this was an
+    * exploratory move).
     */
-   template<class ActionMap, class StateMap> void act
+   template<class ActionMap, class StateMap> int act
    (
     const StateMap& states,
     ActionMap& actions
@@ -183,17 +293,6 @@ public:
       if(!isInitialised_i)
       {
          //*********************************************************************
-         // Construct set of all variables
-         //*********************************************************************
-         std::set<maxsum::VarID> allVars;
-         for(FactorMap::const_iterator it=qValues_i.begin();
-               it!=qValues_i.end(); ++it)
-         {
-            const maxsum::DiscreteFunction& fun = it->second;
-            allVars.insert(fun.varBegin(),fun.varEnd());
-         }
-
-         //*********************************************************************
          // Construct set of all states
          //*********************************************************************
          std::set<maxsum::VarID> stateSet;
@@ -201,48 +300,12 @@ public:
                it!=states.end(); ++it)
          {
             stateSet.insert(it->first);
-            allVars.insert(it->first);
          }
 
          //*********************************************************************
-         // The action set is then the set difference.
-         // Apparently, the set_difference ensures that actionSet_i will be
-         // sorted (assuming all lists are initially sorted).
+         // Call setStates function to do the hard work.
          //*********************************************************************
-         //std::set_difference(allVars.begin(),allVars.end(),
-          //     stateSet.begin(),stateSet.end(),actionSet_i.begin());
-         std::set_difference(stateSet.begin(),stateSet.end(),
-               allVars.begin(),allVars.end(),actionSet_i.begin());
-
-         //TODO strip out this code!
-         std::cout << "allVars = ["; 
-         for(std::set<maxsum::VarID>::const_iterator it=allVars.begin();
-               it!=allVars.end(); ++it)
-         {
-            std::cout << *it << ",";
-         }
-         std::cout << "]" << std::endl;
-
-         std::cout << "states = ["; 
-         for(std::set<maxsum::VarID>::const_iterator it=stateSet.begin();
-               it!=stateSet.end(); ++it)
-         {
-            std::cout << *it << ",";
-         }
-         std::cout << "]" << std::endl;
-
-         std::cout << "actions = ["; 
-         for(std::list<maxsum::VarID>::const_iterator it=actionSet_i.begin();
-               it!=actionSet_i.end(); ++it)
-         {
-            std::cout << *it << ",";
-         }
-         std::cout << "]" << std::endl;
-
-         //*********************************************************************
-         // Make sure we only do this once
-         //*********************************************************************
-         isInitialised_i = true;
+         setStates(stateSet.begin(),stateSet.end());
 
       } // if statement
 
@@ -264,30 +327,18 @@ public:
             int domainSize = maxsum::getDomainSize(curAction);
             actions[curAction] = random::unidrnd(0,domainSize-1);
          }
-         return;
+
+         //*********************************************************************
+         // Return zero for exploratory moves, because no max-sum iterations
+         // have been performed.
+         //*********************************************************************
+         return 0;
       }
 
       //************************************************************************
-      // Otherwise, condition the MaxSumController on the current states.
+      // Otherwise act greedily
       //************************************************************************
-      maxsum::DiscreteFunction curFactor;
-      for(FactorMap::const_iterator it=qValues_i.begin();
-            it!=qValues_i.end(); ++it)
-      {
-         maxsum::condition(it->second,curFactor,states);
-         maxsum_i.setFactor(it->first,curFactor);
-      }
-
-      //************************************************************************
-      // Run max-sum to optimise the set of actions
-      //************************************************************************
-      //maxsum_i.optimise();
-
-      //************************************************************************
-      // Populate the action map with the optimised actions.
-      //************************************************************************
-      actions.clear();
-      actions.insert(maxsum_i.valBegin(),maxsum_i.valEnd());
+      return actGreedy(states,actions);
 
    } // act
 
@@ -297,40 +348,73 @@ public:
     * given successor states, assuming that the last states and actions where
     * as defined immediately after the last call to the act() function.
     * @tparam RewardMap maps maxsum::FactorID to rewards (double)
-    * @tparam StateMap maps maxsum::VarID to maxsum::ValIndex
-    * @param states map of all state values immediately after performing
-    * the last actions returned by act().
+    * @tparam VarMap maps maxsum::VarID to maxsum::ValIndex
+    * @param priorStates map of all state values immediately before performing
+    * specified actions.
+    * @param actions map of all performed action values.
+    * @param postStates map of all state values immediately after performing
+    * specified actions.
     * @param rewards map of all observed rewards to their corresponding
     * Q-value factors.
     * @post Q-value estimates will be updated according to observed factored
     * rewards.
     */
-   template<class RewardMap, class StateMap> void observe
+   template<class RewardMap, class VarMap> void observe
    (
-    const StateMap& states,
+    const VarMap& priorStates,
+    const VarMap& actions,
+    const VarMap& postStates,
     const RewardMap& rewards
    )
    {
       //************************************************************************
-      // Take the union of the observed states and the last set of actions
+      // Take the union of the previous states and the last set of actions.
+      // This specifies which Q-values need to be updated.
       //************************************************************************
+      std::map<maxsum::VarID,maxsum::ValIndex> priorVars;
+      priorVars.insert(priorStates.begin(),priorStates.end());
+      priorVars.insert(actions.begin(),actions.end());
+
+      //************************************************************************
+      // Choose greedy actions w.r.t. to current states. These are used to
+      // perform the maximisation step in the update.
+      //************************************************************************
+      std::map<maxsum::VarID,maxsum::ValIndex> postVars;
+      actGreedy(postStates,postVars);
+
+      //************************************************************************
+      // Bundle the next states in with the greedy next actions. Again, this
+      // is for the maximisation step - specifying the s' and a' together for
+      // finding the value of Q(s',a').
+      //************************************************************************
+      postVars.insert(postStates.begin(),postStates.end());
 
       //************************************************************************
       // For each observed reward 
       //************************************************************************
-
+      typedef typename RewardMap::const_iterator Iterator;
+      for(Iterator it=rewards.begin(); it!=rewards.end(); ++it)
+      {
          //*********************************************************************
          // Find the corresponding factored q-value
          //*********************************************************************
+         FactorMap::const_iterator pos = qValues_i.find(it->first);
 
          //*********************************************************************
          // If we can't find this factor, go on to the next one
          //*********************************************************************
+         if(qValues_i.end()==pos)
+         {
+            continue;
+         }
 
          //*********************************************************************
-         // Update the estimate with the current reward
+         // Update the estimate with the current reward:
+         // Q(s,a) = (1-alpha)*Q(s,a) + alpha*(r + Q(s',a') )
          //*********************************************************************
          //curFactor(allVars) = curReward; // assuming we implement element access via pair collections
+
+      } // for loop
 
    } // observe
 
