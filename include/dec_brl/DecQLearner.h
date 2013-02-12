@@ -398,21 +398,25 @@ public:
          //*********************************************************************
          // Find the corresponding factored q-value
          //*********************************************************************
-         FactorMap::const_iterator pos = qValues_i.find(it->first);
+         FactorMap::iterator qPos = qValues_i.find(it->first);
 
          //*********************************************************************
          // If we can't find this factor, go on to the next one
          //*********************************************************************
-         if(qValues_i.end()==pos)
+         if(qValues_i.end()==qPos)
          {
             continue;
          }
 
          //*********************************************************************
          // Update the estimate with the current reward:
-         // Q(s,a) = (1-alpha)*Q(s,a) + alpha*(r + Q(s',a') )
+         // Q(s,a) = (1-alpha)*Q(s,a) + alpha*(r + gamma*Q(s',a') )
          //*********************************************************************
-         //curFactor(allVars) = curReward; // assuming we implement element access via pair collections
+         maxsum::ValType& priorQ = qPos->second(priorVars);
+         const maxsum::ValType postQ = qPos->second(postVars);
+         const maxsum::ValType curReward = it->second;
+         const maxsum::ValType update = curReward + gamma_i*postQ;
+         priorQ = (1.0-alpha_i)*priorQ + alpha_i*update;
 
       } // for loop
 
