@@ -235,6 +235,29 @@ public:
    )
    {
       //************************************************************************
+      // If this is the first call to act, construct the action set, from the
+      // combined domain of all factors minus the specified states.
+      //************************************************************************
+      if(!isInitialised_i)
+      {
+         //*********************************************************************
+         // Construct set of all states
+         //*********************************************************************
+         std::set<maxsum::VarID> stateSet;
+         for(typename StateMap::const_iterator it=states.begin();
+               it!=states.end(); ++it)
+         {
+            stateSet.insert(it->first);
+         }
+
+         //*********************************************************************
+         // Call setStates function to do the hard work.
+         //*********************************************************************
+         setStates(stateSet.begin(),stateSet.end());
+
+      } // if statement
+
+      //************************************************************************
       // Condition the MaxSumController on the current states.
       //************************************************************************
       maxsum::DiscreteFunction curFactor;
