@@ -1,5 +1,5 @@
-#ifndef MDP_SIM_RANDOM_H
-#define MDP_SIM_RANDOM_H
+#ifndef DEC_BRL_RANDOM_H
+#define DEC_BRL_RANDOM_H
 
 /**
  * A set of wrapper functions for random number generation.
@@ -7,7 +7,7 @@
  * we may want to use Matlab generators when compiling mex functions,
  * but boost/random for other purposes.
  */
-namespace mdp_sim
+namespace dec_brl
 {
    namespace random
    {
@@ -26,8 +26,13 @@ namespace mdp_sim
        */
       int unidrnd(int min, int max);  
 
+      /**
+       * Generate a uniform random number in the range [0,1).
+       */
+      double unirnd();
+
    } // namespace random
 
-} // namespace mdp_sim
+} // namespace dec_brl
 
-#endif // MDP_SIM_RANDOM_H
+#endif // DEC_BRL_RANDOM_H

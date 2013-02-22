@@ -1,5 +1,5 @@
-#include "SimpleMDP.h"
-namespace mdp_sim
+#include "dec_brl/SimpleMDP.h"
+namespace dec_brl
 {
 
    /**
@@ -40,4 +40,4 @@ namespace mdp_sim
       
    } // SimpleMDP::simulate
 
-} // namespace mdp_sim
+} // namespace dec_brl

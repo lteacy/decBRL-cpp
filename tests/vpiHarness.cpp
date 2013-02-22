@@ -6,8 +6,8 @@
 #include <limits>
 #include <exception>
 #include <cfloat>
-#include "vpi.h"
-#include "NormalGamma.h"
+#include "dec_brl/vpi.h"
+#include "dec_brl/NormalGamma.h"
 #include <iostream>
 #include <boost/random/variate_generator.hpp>
 #include <boost/random/normal_distribution.hpp>

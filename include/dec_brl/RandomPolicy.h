@@ -1,9 +1,9 @@
-#ifndef MDP_SIM_RANDOM_POLICY_H
-#define MDP_SIM_RANDOM_POLICY_H
+#ifndef DEC_BRL_RANDOM_POLICY_H
+#define DEC_BRL_RANDOM_POLICY_H
 
 #include "random.h"
 
-namespace mdp_sim
+namespace dec_brl
 {
 
    /**
@@ -34,6 +34,6 @@ namespace mdp_sim
    }; // class RandomPolicy
 
 
-} // namespace mdp_sim
+} // namespace dec_brl
 
-#endif // MDP_SIM_RANDOM_POLICY_H
+#endif // DEC_BRL_RANDOM_POLICY_H
