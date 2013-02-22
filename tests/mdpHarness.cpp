@@ -82,14 +82,14 @@ public:
 
       //************************************************************************
       // Define the reward function, such that a positive reward is received
-      // only if the last action equals the current state.
+      // only if the last action the current state.
       //************************************************************************
       rewardFunc_i.expand(STATE_ID);
       rewardFunc_i.expand(ACTION_ID);
-      rewardFunc_i(0,0) = 10;
-      rewardFunc_i(0,1) = -5;
-      rewardFunc_i(1,0) = -5;
-      rewardFunc_i(1,1) = 10;
+      rewardFunc_i(0,0) = 20;
+      rewardFunc_i(0,1) = 5;
+      rewardFunc_i(1,0) = 5;
+      rewardFunc_i(1,1) = 20;
 
       //************************************************************************
       // Set the current state. Note: we don't set the last action value
@@ -109,7 +109,7 @@ public:
       // variables only.
       //************************************************************************
       const int varIds[] = {STATE_ID, ACTION_ID};
-      learner.addFactor(FACTOR_ID,varIds,varIds+1);
+      learner.addFactor(FACTOR_ID,varIds,varIds+2);
 
    } // addFactors method
    
@@ -140,10 +140,9 @@ public:
       lastAction_i[ACTION_ID] = action[ACTION_ID];
 
       //************************************************************************
-      // For now, just update the state to be equal to the last action, may
-      // change this behaviour later.
+      // Alternative between states
       //************************************************************************
-      state_i[STATE_ID] = lastAction_i[ACTION_ID];
+      state_i[STATE_ID] = (1+state_i[STATE_ID]) % 2;
 
       //************************************************************************
       // Return the reward value for the current state and last acton.
@@ -152,7 +151,7 @@ public:
 
    } // method act
 
-}; // class Single FactorMDP
+}; // class SingleFactorMDP
 
 /**
  * Utility Class for writing results of run into a CSV file.
@@ -183,7 +182,7 @@ public:
     */
    CSVWriter(const char* const psFilename) : out_i(psFilename)
    {
-      out_i << "PriorState,Action,PostState,Reward\n";
+      out_i << "PriorState,Action,PostState,Reward,isExploratory\n";
       out_i.flush();
    }
 
@@ -195,13 +194,15 @@ public:
       VarMap& priorStates,
       VarMap& actions,
       VarMap& postStates,
-      RewardMap& rewards
+      RewardMap& rewards,
+      bool isExploratory
    )
    {
       out_i << priorStates[SingleFactorMDP::STATE_ID] << ',';
       out_i << actions[SingleFactorMDP::ACTION_ID] << ',';
       out_i << postStates[SingleFactorMDP::STATE_ID] << ',';
-      out_i << rewards[SingleFactorMDP::FACTOR_ID] << '\n';
+      out_i << rewards[SingleFactorMDP::FACTOR_ID] << ',';
+      out_i << isExploratory << '\n';
       out_i.flush();
    }
 
@@ -281,7 +282,7 @@ int main(int argc, char* argv[])
    //***************************************************************************
    double meanReward = 0.0;
    int nExploratoryMoves = 0;
-   int timesteps = 500;
+   int timesteps = 4000;
    for(int i=0; i<timesteps; i++)
    {
       std::cout << "ITERATION: " << i << std::endl;
@@ -316,7 +317,7 @@ int main(int argc, char* argv[])
       //************************************************************************
       std::cout << "observing" << std::endl;
       learner.observe(priorState,action,postState,reward);
-      writer.write(priorState,action,postState,reward);
+      writer.write(priorState,action,postState,reward,0==maxsumIterations);
 
    } // for loop
    meanReward /= timesteps;
