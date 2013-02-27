@@ -266,7 +266,7 @@ int main(int argc, char* argv[])
    // iteration of the for loop below.
    //***************************************************************************
    std::cout << "Constructing state, reward and action maps" << std::endl;
-   SingleFactorMDP::VarMap& curStates = mdp.getState();
+   SingleFactorMDP::VarMap& curStates = mdp.getState(); // THIS IS A REFERENCE
    SingleFactorMDP::VarMap postState(curStates.begin(),curStates.end());
    SingleFactorMDP::VarMap priorState;
    SingleFactorMDP::VarMap action;
@@ -324,6 +324,43 @@ int main(int argc, char* argv[])
    std::cout << "DONE meanReward: " << meanReward
       << " Number of exploratory moves: " << nExploratoryMoves << std::endl;
    
+   //***************************************************************************
+   // Check for convergence by perform a few greedy actions - to be optimal
+   // we should always get reward 20.
+   //***************************************************************************
+   std::cout << "Checking convergence..." << std::endl;
+   for(int i=0; i<10; ++i)
+   {
+      std::cout << "CONVERGENCE ITERATION: " << i << std::endl;
+      //************************************************************************
+      // Swap the states so that the old post state becomes the new prior state
+      //************************************************************************
+      std::cout << "swapping states" << std::endl;
+      postState.swap(priorState);
+
+      //************************************************************************
+      // Get the learner to perform an action
+      //************************************************************************
+      std::cout << "choosing action" << std::endl;
+      int maxsumIterations = learner.actGreedy(priorState,action);
+      std::cout << "maxsum iterations: " << maxsumIterations << std::endl;
+      postState[SingleFactorMDP::STATE_ID]=curStates[SingleFactorMDP::STATE_ID];
+      std::cout << "acting" << std::endl;
+      double reward = mdp.act(action);
+
+      //************************************************************************
+      // Ensure that received reward is always max (implies convergence to 
+      // optimal policy)
+      //************************************************************************
+      if(20.0 > reward)
+      {
+         std::cout << "Non optimal reward after learning: " << reward
+            << std::endl;
+         return EXIT_FAILURE;
+      }
+
+   } // for loop
+
    //***************************************************************************
    // Return success if mean reward is high enough to indicate convergence
    //***************************************************************************
