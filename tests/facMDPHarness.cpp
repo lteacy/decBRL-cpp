@@ -16,7 +16,7 @@ namespace {
  * Returns positive reward each possible action is chosen
  * alternately.
  */
-class SingleFactorMDP
+class MultiFactorMDP
 {
 public:
 
@@ -25,12 +25,12 @@ public:
     */
    typedef std::map<maxsum::VarID,maxsum::ValIndex> VarMap;
 
-private:
-
    /**
-    * The reward function for this MDP.
+    * Map type for passing back Factored Rewards
     */
-   maxsum::DiscreteFunction rewardFunc_i;
+   typedef std::map<maxsum::FactorID,double> RewardMap;
+
+private:
 
    /**
     * Map containing the state variable mapped to its current value.
@@ -45,57 +45,46 @@ private:
 public:
 
    /**
-    * Variable ID for single state variable.
+    * Number of reward factors.
     */
-   const static int STATE_ID = 1;
+   const static int NUM_FACTORS = 4; // (numbered 1,3,5,7)
+ 
+   /**
+    * Number of state variables.
+    */
+   const static int NUM_STATES = 4; // (numbered 1,3,5,7)
 
    /**
-    * Variable ID for single action variable.
+    * Number of action variables.
     */
-   const static int ACTION_ID = 2;
+   const static int NUM_ACTIONS = 5; // (numbered 0,2,4,6,8)
 
    /**
-    * ID for single Factor in the mdp.
+    * Number of possible values for each variable.
     */
-   const static int FACTOR_ID = 1;
-
-   /**
-    * Number of possible states.
-    */
-   const static int NUM_STATE_VALS = 2;
-
-   /**
-    * Number of possible actions
-    */
-   const static int NUM_ACTION_VALS = 2;
+   const static int NUM_VALS = 2;
 
    /**
     * Default Constructor.
     */
-   SingleFactorMDP() : rewardFunc_i(), state_i(), lastAction_i()
+   MultiFactorMDP() : state_i(), lastAction_i()
    {
       //************************************************************************
       // Register the state and action variables with the maxsum library
       //************************************************************************
-      maxsum::registerVariable(STATE_ID,NUM_STATE_VALS);
-      maxsum::registerVariable(ACTION_ID,NUM_ACTION_VALS);
+      for(int v=0; v<=8; ++v)
+      {
+         maxsum::registerVariable(v,NUM_VALS);
+      }
 
       //************************************************************************
-      // Define the reward function, such that a positive reward is received
-      // only if the last action the current state.
+      // Set the current state: first state is filled, rest are all empty
       //************************************************************************
-      rewardFunc_i.expand(STATE_ID);
-      rewardFunc_i.expand(ACTION_ID);
-      rewardFunc_i(0,0) = 20;
-      rewardFunc_i(0,1) = 5;
-      rewardFunc_i(1,0) = 5;
-      rewardFunc_i(1,1) = 20;
-
-      //************************************************************************
-      // Set the current state. Note: we don't set the last action value
-      // because no action has yet been performed.
-      //************************************************************************
-      state_i[STATE_ID] = 0;
+      state_i[1] = 1;
+      for(int s=3; s<=7; s+=2)
+      {
+         state_i[s] = 0;
+      }
 
    } // default constructor.
 
@@ -105,11 +94,19 @@ public:
    template<class Learner> void addFactors(Learner& learner)
    {
       //************************************************************************
-      // Register a single factor that depends on the single action and state
-      // variables only.
+      // Register set of factors.
+      // Each factor is odd numbered and depends on the (even numbered) action
+      // variables either side of it, plus the identically (odd numbered) state
+      // variable.
       //************************************************************************
-      const int varIds[] = {STATE_ID, ACTION_ID};
-      learner.addFactor(FACTOR_ID,varIds,varIds+2);
+      int varIds[3];
+      for(int factor=1; factor<=7; factor+=2)
+      {
+         varIds[0]=factor-1;
+         varIds[1]=factor;
+         varIds[2]=factor+1;
+         learner.addFactor(factor,varIds,varIds+3);
+      }
 
    } // addFactors method
    
@@ -131,27 +128,87 @@ public:
 
    /**
     * Perform an action and return the resulting reward.
+    * @returns total reward
     */
-   double act(VarMap& action)
+   double act(VarMap& action, RewardMap& reward)
    {
       //************************************************************************
       // Set the last action to the one being performed.
       //************************************************************************
-      lastAction_i[ACTION_ID] = action[ACTION_ID];
+      lastAction_i = action;
 
       //************************************************************************
-      // Alternative between states
+      // Set factored state and reward
       //************************************************************************
-      state_i[STATE_ID] = (1+state_i[STATE_ID]) % 2;
+      double totReward = 0;
+      for(int s=1; s<=7; s+=2)
+      {
+         //*********************************************************************
+         // Positive reward for hitting a target
+         //*********************************************************************
+         if( (1==action[s-1]) && (0==action[s+1]) && (1==state_i[s]) )
+         {
+            //std::cout << "ACT: F" << s << "A" << action[s-1] << action[s+1]
+            //   << "S" << state_i[s] << std::endl;
+            state_i[s]=0;
+            reward[s]=s*10;
+         }
+         //*********************************************************************
+         // Negative reward for missing a target
+         //*********************************************************************
+         else if(1==state_i[s])
+         {
+            reward[s] = (-s);
+         }
+         //*********************************************************************
+         // Generate targets if both agents pointing the wrong way
+         //*********************************************************************
+         else if( (0==action[s-1]) && (1==action[s+1]) )
+         {
+            state_i[s]=1;
+            reward[s]=0;
+         }
+         else
+         {
+            reward[s]=0;
+         }
+
+         totReward += reward[s];
+
+      } // for loop
 
       //************************************************************************
-      // Return the reward value for the current state and last acton.
+      // Return the total reward
       //************************************************************************
-      return rewardFunc_i(state_i[STATE_ID],lastAction_i[ACTION_ID]);
+      return totReward;
 
    } // method act
 
-}; // class SingleFactorMDP
+}; // class MultiFactorMDP
+
+/**
+ * Utility function for printing maps
+ */
+template<class K, class V> std::ostream& operator<<
+(
+ std::ostream& out,
+ std::map<K,V> map
+)
+{
+   typedef typename std::map<K,V>::const_iterator Iterator;
+   out << '[';
+   bool isFirst=true;
+
+   for(Iterator k=map.begin(); k!=map.end(); ++k)
+   {
+      if(!isFirst) out << ',';
+      out << k->first << '=' << k->second;
+      isFirst=false;
+   }
+   out << ']';
+   out.flush();
+   return out;
+}
 
 /**
  * Utility Class for writing results of run into a CSV file.
@@ -182,7 +239,7 @@ public:
     */
    CSVWriter(const char* const psFilename) : out_i(psFilename)
    {
-      out_i << "PriorState,Action,PostState,Reward,isExploratory\n";
+      out_i << "PriorState;Action;PostState;Reward;isExploratory\n";
       out_i.flush();
    }
 
@@ -198,10 +255,10 @@ public:
       bool isExploratory
    )
    {
-      out_i << priorStates[SingleFactorMDP::STATE_ID] << ',';
-      out_i << actions[SingleFactorMDP::ACTION_ID] << ',';
-      out_i << postStates[SingleFactorMDP::STATE_ID] << ',';
-      out_i << rewards[SingleFactorMDP::FACTOR_ID] << ',';
+      out_i << priorStates << ';';
+      out_i << actions << ';';
+      out_i << postStates << ';';
+      out_i << rewards << ';';
       out_i << isExploratory << '\n';
       out_i.flush();
    }
@@ -250,7 +307,7 @@ int main(int argc, char* argv[])
    // Create MDP Simulator
    //***************************************************************************
    std::cout << "Constructing MDP" << std::endl;
-   SingleFactorMDP mdp;
+   MultiFactorMDP mdp;
 
    //***************************************************************************
    // Create learner
@@ -266,10 +323,10 @@ int main(int argc, char* argv[])
    // iteration of the for loop below.
    //***************************************************************************
    std::cout << "Constructing state, reward and action maps" << std::endl;
-   SingleFactorMDP::VarMap& curStates = mdp.getState(); // THIS IS A REFERENCE
-   SingleFactorMDP::VarMap postState(curStates.begin(),curStates.end());
-   SingleFactorMDP::VarMap priorState;
-   SingleFactorMDP::VarMap action;
+   MultiFactorMDP::VarMap& curStates = mdp.getState(); // THIS IS A REFERENCE
+   MultiFactorMDP::VarMap postState(curStates.begin(),curStates.end());
+   MultiFactorMDP::VarMap priorState;
+   MultiFactorMDP::VarMap action;
    std::map<maxsum::FactorID,double> reward;
 
    //***************************************************************************
@@ -298,9 +355,9 @@ int main(int argc, char* argv[])
       std::cout << "choosing action" << std::endl;
       int maxsumIterations = learner.act(priorState,action);
       std::cout << "maxsum iterations: " << maxsumIterations << std::endl;
-      postState[SingleFactorMDP::STATE_ID]=curStates[SingleFactorMDP::STATE_ID];
+      postState=mdp.getState();
       std::cout << "acting" << std::endl;
-      reward[SingleFactorMDP::FACTOR_ID] = mdp.act(action);
+      meanReward += mdp.act(action,reward);
 
       //************************************************************************
       // Update statistics. Note - if the number of max-sum iterations is 0,
@@ -310,7 +367,6 @@ int main(int argc, char* argv[])
       {
          ++nExploratoryMoves;
       }
-      meanReward += reward[SingleFactorMDP::FACTOR_ID];
 
       //************************************************************************
       // Let the learner observe the received reward
@@ -329,7 +385,7 @@ int main(int argc, char* argv[])
    // we should always get reward 20.
    //***************************************************************************
    std::cout << "Checking convergence..." << std::endl;
-   for(int i=0; i<10; ++i)
+   for(int i=0; i<100; ++i)
    {
       std::cout << "CONVERGENCE ITERATION: " << i << std::endl;
       //************************************************************************
@@ -344,20 +400,11 @@ int main(int argc, char* argv[])
       std::cout << "choosing action" << std::endl;
       int maxsumIterations = learner.actGreedy(priorState,action);
       std::cout << "maxsum iterations: " << maxsumIterations << std::endl;
-      postState[SingleFactorMDP::STATE_ID]=curStates[SingleFactorMDP::STATE_ID];
+      postState=mdp.getState();
       std::cout << "acting" << std::endl;
-      double reward = mdp.act(action);
-
-      //************************************************************************
-      // Ensure that received reward is always max (implies convergence to 
-      // optimal policy)
-      //************************************************************************
-      if(20.0 > reward)
-      {
-         std::cout << "Non optimal reward after learning: " << reward
-            << std::endl;
-         return EXIT_FAILURE;
-      }
+      double totReward = mdp.act(action,reward);
+      std::cout << "totReward: " << totReward << std::endl;
+      writer.write(priorState,action,postState,reward,0==maxsumIterations);
 
    } // for loop
 
