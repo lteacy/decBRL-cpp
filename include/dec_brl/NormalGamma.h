@@ -174,6 +174,117 @@ namespace dist {
    }
 
    /**
+    * Updates a parameter distribution given sufficient statistics for a sample
+    * drawn from the target distribution. The update equations here are based on
+    * Section 7.6 of M. DeGroot and M. Schervish. Probability & Statistics.
+    * Addison-Wesley, 3rd edition, 2002. Precise update equations used here
+    * are
+    * \f{eqnarray*}{
+    * \alpha' &=& \alpha + \frac{n}{2} \\
+    * \beta' &=& \beta + \frac{s^2_n}{2} + \frac{n \lambda (\bar{x}_n-m)^2}{2(\lambda+n)} \\
+    * \lambda' &=& \lambda + n \\
+    * m' &=& \frac{\lambda m + n \bar{x}_n}{\lambda+n}
+    * \f}
+    * @param paramDist the parameter distribution to update.
+    * @param[in] sm sample mean for observations:
+    * \f{displaymath}{
+    * \bar{x}_n = \frac{1}{n} \sum^n_{i=1} x_i
+    * \f}
+    * @param[in] s2 sum of squared squares for observations:
+    * \f{displaymath}{
+    * s^2_n = \sum^n_{i=1} (x_i - \bar{x}_n)^2
+    * \f}
+    * @param[in] n the number of observations.
+    */
+   template<class RealType, class ValType, class Policy> 
+   typename boost::disable_if
+      < boost::is_base_of<maxsum::DiscreteFunction,RealType> >::type
+   observe
+   (
+    NormalGamma_Tmpl<RealType,Policy>& paramDist,
+    const ValType sm,
+    const ValType s2,
+    const int n
+   )
+   {
+   } // observe
+
+   /**
+    * Updates a parameter distribution given sufficient statistics for a sample
+    * drawn from the target distribution. The update equations here are based on
+    * Section 7.6 of M. DeGroot and M. Schervish. Probability & Statistics.
+    * Addison-Wesley, 3rd edition, 2002. Precise update equations used here
+    * are
+    * \f{eqnarray*}{
+    * \alpha' &=& \alpha + \frac{n}{2} \\
+    * \beta' &=& \beta + \frac{s^2_n}{2} + \frac{n \lambda (\bar{x}_n-m)^2}{2(\lambda+n)} \\
+    * \lambda' &=& \lambda + n \\
+    * m' &=& \frac{\lambda m + n \bar{x}_n}{\lambda+n}
+    * \f}
+    * @param paramDist the parameter distribution to update.
+    * @param[in] sm sample mean for observations:
+    * \f{displaymath}{
+    * \bar{x}_n = \frac{1}{n} \sum^n_{i=1} x_i
+    * \f}
+    * @param[in] s2 sum of squared squares for observations:
+    * \f{displaymath}{
+    * s^2_n = \sum^n_{i=1} (x_i - \bar{x}_n)^2
+    * \f}
+    * @param[in] n the number of observations.
+    */
+   template<class RealType, class ValType, class Policy> 
+   typename boost::enable_if
+      < boost::is_base_of<maxsum::DiscreteFunction,RealType> >::type
+   observe
+   (
+    NormalGamma_Tmpl<RealType,Policy>& paramDist,
+    const ValType sm,
+    const ValType s2,
+    const int n
+   )
+   {
+   } // observe
+
+   /**
+    * Updates a parameter distribution given sufficient statistics for a sample
+    * drawn from the target distribution.
+    * This version applies update only to a specific element of a
+    * maxsum::DiscreteFunction value.
+    * The update equations here are based on
+    * Section 7.6 of M. DeGroot and M. Schervish. Probability & Statistics.
+    * Addison-Wesley, 3rd edition, 2002. Precise update equations used here
+    * are
+    * \f{eqnarray*}{
+    * \alpha' &=& \alpha + \frac{n}{2} \\
+    * \beta' &=& \beta + \frac{s^2_n}{2} + \frac{n \lambda (\bar{x}_n-m)^2}{2(\lambda+n)} \\
+    * \lambda' &=& \lambda + n \\
+    * m' &=& \frac{\lambda m + n \bar{x}_n}{\lambda+n}
+    * \f}
+    * @param paramDist the parameter distribution to update.
+    * @param index scalar index to specific element of DiscreteFunction value to
+    * update.
+    * @param[in] sm sample mean for observations:
+    * \f{displaymath}{
+    * \bar{x}_n = \frac{1}{n} \sum^n_{i=1} x_i
+    * \f}
+    * @param[in] s2 sum of squared squares for observations:
+    * \f{displaymath}{
+    * s^2_n = \sum^n_{i=1} (x_i - \bar{x}_n)^2
+    * \f}
+    * @param[in] n the number of observations.
+    */
+   template<class ValType, class Policy> void observe
+   (
+    NormalGamma_Tmpl<maxsum::DiscreteFunction,Policy>& paramDist,
+    maxsum::ValIndex index,
+    const ValType sm,
+    const ValType s2,
+    const int n
+   )
+   {
+   } // observe
+
+   /**
     * Updates a parameter distribution given an observation drawn from its
     * target distribution. The update equations here are based on:
     * Section 7.6 of M. DeGroot and M. Schervish. Probability & Statistics.
