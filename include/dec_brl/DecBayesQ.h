@@ -2,6 +2,7 @@
 #define DEC_BRL_DEC_BAYES_Q_H
 
 #include "dec_brl/random.h"
+#include "dec_brl/NormalGamma.h"
 #include "MaxSumController.h"
 #include <set>
 #include <list>
@@ -54,9 +55,21 @@ private:
    typedef std::map<maxsum::FactorID, maxsum::DiscreteFunction> FactorMap;
 
    /**
+    * Convenience type def for a Q-value belief distribution.
+    * This is a normal gamma distribution defined for each element of a
+    * DiscreteFunction.
+    */
+   typedef dist::NormalGamma_Tmpl<maxsum::DiscreteFunction> QDist;
+
+   /**
+    * Convenience type def for Q-value belief maps
+    */
+   typedef std::map<maxsum::FactorID, QDist> BeliefMap;
+
+   /**
     * Estimated Q-values stored as DiscreteFunctions.
     */
-   FactorMap qValues_i;
+   BeliefMap qBeliefs_i;
 
 public:
 
@@ -82,7 +95,7 @@ public:
    )
    : alpha_i(alpha), gamma_i(gamma), 
      maxsum_i(maxIterations,maxnorm), actionSet_i(), isInitialised_i(false),
-     qValues_i()
+     qBeliefs_i()
    {}
 
    /**
@@ -91,7 +104,7 @@ public:
    DecBayesQ(const DecBayesQ& rhs)
    : alpha_i(rhs.alpha_i), gamma_i(rhs.gamma_i), 
      maxsum_i(rhs.maxsum_i), actionSet_i(rhs.actionSet_i), 
-     isInitialised_i(rhs.isInitialised_i), qValues_i(rhs.qValues_i)
+     isInitialised_i(rhs.isInitialised_i), qBeliefs_i(rhs.qBeliefs_i)
    {}
 
    /**
@@ -104,7 +117,7 @@ public:
       maxsum_i = rhs.maxsum_i;
       actionSet_i = rhs.actionSet_i;
       isInitialised_i = rhs.isInitialised_i;
-      qValues_i = rhs.qValues_i;
+      qBeliefs_i = rhs.qBeliefs_i;
       return *this;
    }
 
@@ -134,11 +147,31 @@ public:
    )
    {
       //************************************************************************
-      // Map the specified Q-value factor to a function that depends only on
-      // the specified list of variables. All values are initially zero.
+      // Initialise a distribution using default hyperparameters.
+      // This is done by std::map implicitly calling the NormalGamma default
+      // constructor the new factor. 
       //************************************************************************
-      qValues_i[factor] = maxsum::DiscreteFunction(varBegin,varEnd,0.0);
+      QDist& dist = qBeliefs_i[factor];
+      
+      //************************************************************************
+      // Sanity check to make sure the factor does not already exist,
+      // otherwise we might get unexpected behaviour.
+      //************************************************************************
+      assert(0==dist.alpha.noVars());
+      assert(0==dist.beta.noVars());
+      assert(0==dist.lambda.noVars());
+      assert(0==dist.m.noVars());
 
+      //************************************************************************
+      // Expand the distribution domain to the required variables.
+      // This will copy the default hyperparameter values for each joint
+      // state-action in the Q factor's domain.
+      //************************************************************************
+      dist.alpha.expand(varBegin,varEnd);
+      dist.beta.expand(varBegin,varEnd);
+      dist.lambda.expand(varBegin,varEnd);
+      dist.m.expand(varBegin,varEnd);
+      
    } // addFactor
 
    /**
@@ -172,11 +205,11 @@ public:
       // Construct set of all variables
       //************************************************************************
       std::set<maxsum::VarID> allVars;
-      for(FactorMap::const_iterator it=qValues_i.begin();
-            it!=qValues_i.end(); ++it)
+      for(BeliefMap::const_iterator it=qBeliefs_i.begin();
+            it!=qBeliefs_i.end(); ++it)
       {
-         const maxsum::DiscreteFunction& fun = it->second;
-         allVars.insert(fun.varBegin(),fun.varEnd());
+         const QDist& fun = it->second;
+         allVars.insert(fun.alpha.varBegin(),fun.alpha.varEnd());
       }
 
       //************************************************************************
@@ -244,13 +277,15 @@ public:
       } // if statement
 
       //************************************************************************
-      // Condition the MaxSumController on the current states.
+      // Condition the MaxSumController on the current states and expected
+      // Q-values. Note that the expected Q-values are equal to the 'm'
+      // hyperparameter of the NormalGamma distribution.
       //************************************************************************
       maxsum::DiscreteFunction curFactor;
-      for(FactorMap::const_iterator it=qValues_i.begin();
-            it!=qValues_i.end(); ++it)
+      for(BeliefMap::const_iterator it=qBeliefs_i.begin();
+            it!=qBeliefs_i.end(); ++it)
       {
-         maxsum::condition(it->second,curFactor,states);
+         maxsum::condition(it->second.m,curFactor,states);
          maxsum_i.setFactor(it->first,curFactor);
       }
 
@@ -319,33 +354,7 @@ public:
       } // if statement
 
       //************************************************************************
-      // Flip a coin to decide whether to explore (with probablity epsilon)
-      // or to exploit by acting greedily w.r.t. to current estimate.
-      //************************************************************************
-      bool doExplore = true;
-
-      //************************************************************************
-      // If this is an exploratory move, just choose random actions
-      //************************************************************************
-      if(doExplore)
-      {
-         for(std::list<maxsum::VarID>::const_iterator it=actionSet_i.begin();
-               it!=actionSet_i.end(); ++it)
-         {
-            maxsum::VarID curAction = *it;
-            int domainSize = maxsum::getDomainSize(curAction);
-            actions[curAction] = random::unidrnd(0,domainSize-1);
-         }
-
-         //*********************************************************************
-         // Return zero for exploratory moves, because no max-sum iterations
-         // have been performed.
-         //*********************************************************************
-         return 0;
-      }
-
-      //************************************************************************
-      // Otherwise act greedily
+      // For now, just act greedy
       //************************************************************************
       return actGreedy(states,actions);
 
@@ -405,27 +414,22 @@ public:
       for(Iterator it=rewards.begin(); it!=rewards.end(); ++it)
       {
          //*********************************************************************
-         // Find the corresponding factored q-value
+         // Find the corresponding factored q-value belief distribution
          //*********************************************************************
-         FactorMap::iterator qPos = qValues_i.find(it->first);
+         BeliefMap::iterator qPos = qBeliefs_i.find(it->first);
 
          //*********************************************************************
          // If we can't find this factor, go on to the next one
          //*********************************************************************
-         if(qValues_i.end()==qPos)
+         if(qBeliefs_i.end()==qPos)
          {
             continue;
          }
 
          //*********************************************************************
-         // Update the estimate with the current reward:
-         // Q(s,a) = (1-alpha)*Q(s,a) + alpha*(r + gamma*Q(s',a') )
+         // Update the belief distribution for this Q-value
          //*********************************************************************
-         maxsum::ValType& priorQ = qPos->second(priorVars);
-         const maxsum::ValType postQ = qPos->second(postVars);
-         const maxsum::ValType curReward = it->second;
-         const maxsum::ValType update = curReward + gamma_i*postQ;
-         priorQ = (1.0-alpha_i)*priorQ + alpha_i*update;
+         // TODO
 
       } // for loop
 
