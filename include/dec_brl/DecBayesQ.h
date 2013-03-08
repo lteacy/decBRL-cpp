@@ -365,6 +365,7 @@ public:
     * Updates the factored Q-Values for given observed factored rewards, and
     * given successor states, assuming that the last states and actions where
     * as defined immediately after the last call to the act() function.
+    * In this function, we use Dearden et al.'s moment updating method.
     * @tparam RewardMap maps maxsum::FactorID to rewards (double)
     * @tparam VarMap maps maxsum::VarID to maxsum::ValIndex
     * @param priorStates map of all state values immediately before performing
@@ -374,8 +375,8 @@ public:
     * specified actions.
     * @param rewards map of all observed rewards to their corresponding
     * Q-value factors.
-    * @post Q-value estimates will be updated according to observed factored
-    * rewards.
+    * @post Q-value distributions will be updated according to observed
+    * factored rewards.
     */
    template<class RewardMap, class VarMap> void observe
    (
@@ -429,7 +430,7 @@ public:
          //*********************************************************************
          // Update the belief distribution for this Q-value
          //*********************************************************************
-         // TODO
+         // TODO Dearden's equations are wrong for this. Need to correct.
 
       } // for loop
 
