@@ -207,6 +207,21 @@ namespace dist {
     const int n
    )
    {
+      RealType oldAlpha = paramDist.alpha;
+      RealType oldBeta = paramDist.beta;
+      RealType oldLambda = paramDist.lambda;
+      RealType oldM = paramDist.m;
+
+      RealType newAlpha = oldAlpha + n/2.0;
+      RealType newLambda = oldLambda + n;
+      RealType newM = (oldLambda*oldM + n*sm) / newLambda;
+      RealType newBeta = oldBeta + s2/2.0 + n*oldLambda*(oldM-sm)*(oldM-sm)/2.0/newLambda;
+
+      paramDist.alpha = newAlpha;
+      paramDist.beta = newBeta;
+      paramDist.lambda = newLambda;
+      paramDist.m = newM;
+
    } // observe
 
    /**
@@ -243,6 +258,51 @@ namespace dist {
     const int n
    )
    {
+      //************************************************************************
+      // Convenience references
+      //************************************************************************
+      RealType& alpha = paramDist.alpha;
+      RealType& beta = paramDist.beta;
+      RealType& lambda = paramDist.lambda;
+      RealType& m = paramDist.m;
+
+      //************************************************************************
+      // Update hyperparameters. Here we use assigment operators as much as 
+      // possible, because these are more efficient for DiscreteFunction
+      // objects. For primitive types, this shouldn't make much difference to
+      // performance.
+      //
+      // This would probably be faster if we implemented lazy function
+      // evaluation and did everything in a single pass.
+      //************************************************************************
+
+      // lambda = lambda + n (but need to perserve old value for now)
+      RealType newLambda(lambda);
+      newLambda += n;
+
+      // a = a + n/2;
+      alpha += n/2.0;
+
+      // tmp = n*lambda*(m-sm)^2/(2*[lambda+n])  (used for beta update)
+      RealType tmp(m);
+      tmp -= sm;         // result: m-sm
+      tmp *= tmp;        // result: (m-sm)^2
+      tmp *= lambda;     // result: lambda*(m-sm)^2
+      tmp *= n/2.0;      // result: n*lambda*(m-sm)^2/2
+      tmp /= newLambda;  // result: n*lambda*(m-sm)^2/(2*[lambda+1])
+
+      // b = b + s2/2 + lambda*(m-ms)^2/(2*[lambda+1])
+      beta += s2/2.0;
+      beta += tmp;
+
+      // m = (m*lambda+n*ms) / (lambda + n)
+      m *= lambda;
+      m += n*sm;
+      m /= newLambda;
+
+      // apply lambda update by swapping pointers (more efficient)
+      lambda.swap(newLambda);
+
    } // observe
 
    /**
@@ -282,6 +342,22 @@ namespace dist {
     const int n
    )
    {
+      maxsum::ValType oldAlpha = paramDist.alpha(index);
+      maxsum::ValType oldBeta = paramDist.beta(index);
+      maxsum::ValType oldLambda = paramDist.lambda(index);
+      maxsum::ValType oldM = paramDist.m(index);
+
+      maxsum::ValType newAlpha = oldAlpha + n/2.0;
+      maxsum::ValType newLambda = oldLambda + n;
+      maxsum::ValType newM = (oldLambda*oldM + n*sm) / newLambda;
+      maxsum::ValType newBeta = oldBeta + s2/2.0 +
+         n*oldLambda*(oldM-sm)*(oldM-sm)/2.0/newLambda;
+
+      paramDist.alpha(index) = newAlpha;
+      paramDist.beta(index) = newBeta;
+      paramDist.lambda(index) = newLambda;
+      paramDist.m(index) = newM;
+
    } // observe
 
    /**

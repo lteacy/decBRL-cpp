@@ -50,18 +50,28 @@ bool isConsistent
  */
 bool isConsistent
 (
- const dec_brl::dist::NormalGamma& scalarDist,
  const dec_brl::dist::NormalGamma& otherDist,
+ const dec_brl::dist::NormalGamma& scalarDist,
  const dec_brl::dist::NormalGamma_Tmpl<maxsum::DiscreteFunction>& vecDist,
  const int index
 )
 {
+   const dec_brl::dist::NormalGamma* pCorrect = 0;
    for(int k=0; k<vecDist.m.domainSize(); ++k)
    {
-      bool  alphaOk = equalWithinTol_m(scalarDist.alpha,vecDist.alpha(index));
-      bool   betaOk = equalWithinTol_m(scalarDist.beta,vecDist.beta(index));
-      bool lambdaOk = equalWithinTol_m(scalarDist.lambda,vecDist.lambda(index));
-      bool      mOk = equalWithinTol_m(scalarDist.m,vecDist.m(index));
+      if(index==k)
+      {
+         pCorrect=&scalarDist;
+      }
+      else
+      {
+         pCorrect=&otherDist;
+      }
+
+      bool  alphaOk = equalWithinTol_m(pCorrect->alpha,vecDist.alpha(k));
+      bool   betaOk = equalWithinTol_m(pCorrect->beta,vecDist.beta(k));
+      bool lambdaOk = equalWithinTol_m(pCorrect->lambda,vecDist.lambda(k));
+      bool      mOk = equalWithinTol_m(pCorrect->m,vecDist.m(k));
 
       if(!(alphaOk & betaOk & lambdaOk & mOk))
       {
@@ -270,7 +280,7 @@ int main()
          return EXIT_FAILURE;
       }
 
-      if(!isConsistent(scalarParams1,scalarSingleUpdate2))
+      if(isConsistent(scalarParams1,scalarSingleUpdate2))
       {
          std::cout << "Unexpected match between updates 1 and 2" << std::endl;
          return EXIT_FAILURE;
