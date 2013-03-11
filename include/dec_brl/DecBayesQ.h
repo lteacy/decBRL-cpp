@@ -354,9 +354,45 @@ public:
       } // if statement
 
       //************************************************************************
-      // For now, just act greedy
+      // Call max-sum (via actGreedy) to calculate the 1st best joint action
       //************************************************************************
-      return actGreedy(states,actions);
+      int msIterationCount = actGreedy(states,actions);
+
+      //************************************************************************
+      // Get 2nd best actions from max-sum controller
+      // Note, we're relying here on actGreedy leaving the maxsum controller
+      // in the correct state: conditioned on current state, and preoptimised
+      // w.r.t. to the conditioned expected Q-values.
+      //************************************************************************
+
+      //************************************************************************
+      // For each factor 
+      //************************************************************************
+
+         //*********************************************************************
+         // Calculate local vpi for current state
+         //*********************************************************************
+
+         //*********************************************************************
+         // Add VPI to expected local Q - which is already stored in 
+         // maxsum controller
+         //*********************************************************************
+
+      //************************************************************************
+      // Run maxsum again to optimise w.r.t. to combined value.
+      //************************************************************************
+      msIterationCount += maxsum_i.optimise();
+
+      //************************************************************************
+      // Populate the action map with the optimised actions.
+      //************************************************************************
+      actions.clear();
+      actions.insert(maxsum_i.valBegin(),maxsum_i.valEnd());
+
+      //************************************************************************
+      // For diagnostic purposes, also return number of max-sum iterations.
+      //************************************************************************
+      return msIterationCount;
 
    } // act
 
