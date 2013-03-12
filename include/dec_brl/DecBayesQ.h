@@ -354,20 +354,38 @@ public:
       } // if statement
 
       //************************************************************************
-      // Call max-sum (via actGreedy) to calculate the 1st best joint action
+      // Condition the MaxSumController on the current states and expected
+      // Q-values. Note that the expected Q-values are equal to the 'm'
+      // hyperparameter of the NormalGamma distribution.
       //************************************************************************
-      int msIterationCount = actGreedy(states,actions);
+      maxsum::DiscreteFunction curFactor;
+      for(BeliefMap::const_iterator it=qBeliefs_i.begin();
+            it!=qBeliefs_i.end(); ++it)
+      {
+         maxsum::condition(it->second.m,curFactor,states);
+         maxsum_i.setFactor(it->first,curFactor);
+      }
 
       //************************************************************************
-      // Get 2nd best actions from max-sum controller
-      // Note, we're relying here on actGreedy leaving the maxsum controller
-      // in the correct state: conditioned on current state, and preoptimised
-      // w.r.t. to the conditioned expected Q-values.
+      // Run max-sum to calculate each factor's total local value
+      // (sum of factor plus its received messages).
       //************************************************************************
+      int msIterationCount = maxsum_i.optimise();
 
       //************************************************************************
       // For each factor 
       //************************************************************************
+      for(BeliefMap::const_iterator it=qBeliefs_i.begin();
+            it!=qBeliefs_i.end(); ++it)
+      {
+         const maxsum::FactorID factor = it->first;
+         const QDist& dist = it->second;
+
+         //*********************************************************************
+         // Calculate this factors local 1st and 2nd best actions based on its
+         // combined local value (sum of factor plus its received messages).
+         //*********************************************************************
+         const maxsum::DiscreteFunction& totVal=maxsum_i.getTotalValue(factor);
 
          //*********************************************************************
          // Calculate local vpi for current state
@@ -377,6 +395,8 @@ public:
          // Add VPI to expected local Q - which is already stored in 
          // maxsum controller
          //*********************************************************************
+
+      } // for loop
 
       //************************************************************************
       // Run maxsum again to optimise w.r.t. to combined value.
