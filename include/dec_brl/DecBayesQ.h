@@ -333,6 +333,7 @@ public:
       //************************************************************************
       // If this is the first call to act, construct the action set, from the
       // combined domain of all factors minus the specified states.
+      // Also initialise the maxsum controller
       //************************************************************************
       if(!isInitialised_i)
       {
@@ -351,20 +352,42 @@ public:
          //*********************************************************************
          setStates(stateSet.begin(),stateSet.end());
 
-      } // if statement
+         //*********************************************************************
+         // Condition the MaxSumController on the current states and expected
+         // Q-values. Note that the expected Q-values are equal to the 'm'
+         // hyperparameter of the NormalGamma distribution.
+         //*********************************************************************
+         maxsum::DiscreteFunction curFactor;
+         for(BeliefMap::const_iterator it=qBeliefs_i.begin();
+               it!=qBeliefs_i.end(); ++it)
+         {
+            maxsum::condition(it->second.m,curFactor,states);
+            maxsum_i.setFactor(it->first,curFactor);
+         }
 
+      } 
       //************************************************************************
-      // Condition the MaxSumController on the current states and expected
-      // Q-values. Note that the expected Q-values are equal to the 'm'
-      // hyperparameter of the NormalGamma distribution.
+      // If we've already initialised, then we modify the maxsum's factor
+      // the fast way.
       //************************************************************************
-      maxsum::DiscreteFunction curFactor;
-      for(BeliefMap::const_iterator it=qBeliefs_i.begin();
-            it!=qBeliefs_i.end(); ++it)
+      else
       {
-         maxsum::condition(it->second.m,curFactor,states);
-         maxsum_i.setFactor(it->first,curFactor);
-      }
+         //*********************************************************************
+         // Condition the MaxSumController on the current states and expected
+         // Q-values. Note that the expected Q-values are equal to the 'm'
+         // hyperparameter of the NormalGamma distribution.
+         //*********************************************************************
+         for(BeliefMap::const_iterator it=qBeliefs_i.begin();
+               it!=qBeliefs_i.end(); ++it)
+         {
+            maxsum::DiscreteFunction& curFactor = 
+               maxsum_i.getUnSafeWritableFactorHandle(it->first);
+
+            maxsum::condition(it->second.m,curFactor,states);
+            maxsum_i.notifyFactor(it->first); // notify maxsum of change 
+
+         } // for
+      } // else
 
       //************************************************************************
       // Run max-sum to calculate each factor's total local value
@@ -386,15 +409,20 @@ public:
          // combined local value (sum of factor plus its received messages).
          //*********************************************************************
          const maxsum::DiscreteFunction& totVal=maxsum_i.getTotalValue(factor);
+         maxsum::ValIndex firstBest = totVal.argmax();
+         maxsum::ValIndex secondBest = totVal.argmax2(firstBest);
 
          //*********************************************************************
-         // Calculate local vpi for current state
+         // Calculate local vpi for current state TODO
          //*********************************************************************
+         maxsum::DiscreteFunction localVPI;
 
          //*********************************************************************
          // Add VPI to expected local Q - which is already stored in 
          // maxsum controller
          //*********************************************************************
+         maxsum_i.getUnSafeWritableFactorHandle(factor) += localVPI;
+         maxsum_i.notifyFactor(factor); // notify maxsum of change to factor
 
       } // for loop
 

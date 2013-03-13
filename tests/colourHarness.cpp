@@ -419,7 +419,7 @@ int testLearner_m(DecQLearner learner, const FactorMap_m& factors)
    //***************************************************************************
    // Deal with any unexpected exceptions
    //***************************************************************************
-   catch(std::exception e)
+   catch(std::exception& e)
    {
       std::cout << "Caught unexpected exception: " << e.what();
       ++errorCount;
