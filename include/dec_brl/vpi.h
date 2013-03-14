@@ -45,7 +45,10 @@ namespace dec_brl
     * dist.alpha < 0.5.
     * @see http://eprints.soton.ac.uk/273201/
     */
-   template<class RealType, class Policy> RealType truncationBias 
+   template<class RealType, class Policy>
+   typename boost::disable_if
+      < boost::is_base_of<maxsum::DiscreteFunction,RealType>, RealType >::type
+   truncationBias
    (
     const dist::NormalGamma_Tmpl<RealType,Policy>& dist,
     const RealType x
@@ -95,6 +98,61 @@ namespace dec_brl
       //************************************************************************
       return std::exp(lnResult);
 
+   } // truncationBias
+   
+   /**
+    * Calculates Teacy et al's Truncation Bias Function, as defined in http://eprints.soton.ac.uk/273201/.
+    * For an input parameter, \c x, and Normal-Gamma distribution, \c dist,
+    * with hyperparameters
+    * \f$\rho = \langle \alpha, \beta, \lambda, m \rangle \f$,
+    * the truncation bias function is defined as
+    * \f[
+    * \mathcal{B}_{\rho}(x) =
+    * \frac{\Gamma\left(\alpha - \frac{1}{2} \right) \sqrt{\beta}
+    * \left( 1+ \frac{\lambda(x-m)^2}{2\beta} \right)^{-\alpha+\frac{1}{2}}}
+    * {\Gamma(\alpha)\Gamma(1/2)\sqrt{2\lambda}}
+    * \f]
+    * Strictly speaking, this function is not defined for \f$\alpha<0.5\f$.
+    * However, in such cases, it is normally sufficient to return a very large
+    * value, rather than generate an error condition. In such cases, we
+    * therefore return dec_brl::Limits::infinity.
+    * @tparam RealType scalar type used for parameters and return values.
+    * @tparam Policy Boost.Math policy used to calculate results. This effects
+    * result accuracy, but the default policy is normally suffice.
+    * @param[in] dist the Normal-Gamma parameter distribution with
+    * hyperparameters \f$\rho = \langle \alpha, \beta, \lambda, m \rangle \f$.
+    * @param[in] x input for return value \f$\mathcal{B}_{\rho}(x)\f$
+    * @param[out] result \f$\mathcal{B}_{\rho}(x)\f$ or the largest
+    * possible value if dist.alpha < 0.5.
+    * @see http://eprints.soton.ac.uk/273201/
+    */
+   template<class Policy> void truncationBias
+   (
+    const dist::NormalGamma_Tmpl<maxsum::DiscreteFunction,Policy>& dist,
+    const maxsum::DiscreteFunction x,
+    maxsum::DiscreteFunction& result
+    )
+   {
+      using namespace boost::math;
+      using namespace maxsum;
+      
+      Policy policy; // Boost.Math policy used for calculations.
+      
+      //************************************************************************
+      // For now, we just iterate through and do this for each element
+      // separate. However, in future, we may find it more efficient to do this
+      // in one go using lazy evaluation and vectorised code.
+      //************************************************************************
+      result = x; // get the correct domain (values will be overwritten)
+      for(int k=0; k<result.domainSize(); ++k)
+      {
+         dist::NormalGamma_Tmpl<maxsum::ValType> scalarDist(dist.alpha(k),
+                                                            dist.beta(k),
+                                                            dist.lambda(k),
+                                                            dist.m(k));
+         result(k) = truncationBias(scalarDist,x(k));
+      }
+      
    } // truncationBias
 
    /**
@@ -161,10 +219,10 @@ namespace dec_brl
       return expGain;
 
    } // vpi function
-
+   
    /**
     * Calculates the Value of Perfect Information (VPI) analytically,
-    * given that an actions value distribution is a noncentral t 
+    * given that an actions value distribution is a noncentral t
     * distribution. In particular, the value distribution takes this form
     * in Bayesian Q-learning. This return value is calculated according
     * to Teacy et al's solution.
@@ -180,7 +238,10 @@ namespace dec_brl
     * according to \c valDist.
     * @see http://eprints.soton.ac.uk/273201/
     */
-   template<class RealType, class Policy> RealType exactVPI
+   template<class RealType, class Policy>
+   typename boost::disable_if
+      < boost::is_base_of<maxsum::DiscreteFunction,RealType>, RealType >::type
+   exactVPI
    (
     bool isBestAction,
     const RealType bestVal1,
@@ -189,7 +250,7 @@ namespace dec_brl
    )
    {
       using namespace boost::math;
-
+      
       // truncation bias undefined for alpha<0.5
       if(dist.alpha<0.5)
       {
@@ -211,7 +272,60 @@ namespace dec_brl
          assert(result>=0);
          return result;
       }
+      
+   } // vpi function
+   
+   /**
+    * Calculates the Value of Perfect Information (VPI) analytically for a value
+    * function stored in a maxsum::DiscreteFunction object.
+    * @tparam Policy Boost.Math policy used to calculate results. This effects
+    * result accuracy, but the default policy is normally suffice.
+    * @param[in] dist the parameter distribution for the action for which
+    * VPI is to be calculated.
+    * @param[out] result object in which to store result
+    * @see http://eprints.soton.ac.uk/273201/
+    */
+   template<class Policy> void exactVPI
+   (
+    const dist::NormalGamma_Tmpl<maxsum::DiscreteFunction,Policy>& dist,
+    maxsum::DiscreteFunction& result
+   )
+   {
+      using namespace boost::math;
+      using namespace maxsum;
+      using namespace dist;
+      
+      //************************************************************************
+      // Find the first and second best actions for the function
+      //************************************************************************
+      const ValIndex firstBestInd = dist.m.argmax();
+      const ValIndex secondBestInd = dist.m.argmax2(firstBestInd);
+      const ValType firstBestVal = dist.m(firstBestInd);
+      const ValType secondBestVal = dist.m(secondBestInd);
 
+      //************************************************************************
+      // For now, we just iterate through and do this for each element
+      // separate. However, in future, we may find it more efficient to do this
+      // in one go using lazy evaluation and vectorised code.
+      //************************************************************************
+      result = dist.m; // get the correct domain (values will be overwritten)
+      for(int k=0; k<result.domainSize(); ++k)
+      {
+         dist::NormalGamma_Tmpl<maxsum::ValType> scalarDist(dist.alpha(k),
+                                                            dist.beta(k),
+                                                            dist.lambda(k),
+                                                            dist.m(k));
+         
+         bool isBest = (firstBestInd==k);
+         result(k) = exactVPI(isBest, firstBestVal, secondBestVal, scalarDist);
+         
+      }
+      
+      //************************************************************************
+      // Sanity check result is greater than zero for all values
+      //************************************************************************
+      assert(result>=0);
+      
    } // vpi function
 
 } // namespace dec_brl
