@@ -3,6 +3,7 @@
 
 #include "dec_brl/random.h"
 #include "dec_brl/NormalGamma.h"
+#include "dec_brl/vpi.h"
 #include "MaxSumController.h"
 #include <set>
 #include <list>
@@ -402,20 +403,25 @@ public:
             it!=qBeliefs_i.end(); ++it)
       {
          const maxsum::FactorID factor = it->first;
-         const QDist& dist = it->second;
+         const QDist& qValDist = it->second;
 
          //*********************************************************************
-         // Calculate this factors local 1st and 2nd best actions based on its
-         // combined local value (sum of factor plus its received messages).
+         // Construct the belief distribution over the local combined value
+         // This is the same as the local belief distribution, except it is
+         // conditioned on the current state, and the mean is shifted to include
+         // the messages past from all neighbouring nodes.
          //*********************************************************************
-         const maxsum::DiscreteFunction& totVal=maxsum_i.getTotalValue(factor);
-         maxsum::ValIndex firstBest = totVal.argmax();
-         maxsum::ValIndex secondBest = totVal.argmax2(firstBest);
+         QDist totValDist;
+         totValDist.m = maxsum_i.getTotalValue(factor);
+         maxsum::condition(qValDist.alpha,totValDist.alpha,states);
+         maxsum::condition(qValDist.beta,totValDist.beta,states);
+         maxsum::condition(qValDist.lambda,totValDist.lambda,states);
 
          //*********************************************************************
-         // Calculate local vpi for current state TODO
+         // Calculate local vpi for current state
          //*********************************************************************
          maxsum::DiscreteFunction localVPI;
+         exactVPI(totValDist, localVPI);
 
          //*********************************************************************
          // Add VPI to expected local Q - which is already stored in 
@@ -449,7 +455,7 @@ public:
     * Updates the factored Q-Values for given observed factored rewards, and
     * given successor states, assuming that the last states and actions where
     * as defined immediately after the last call to the act() function.
-    * In this function, we use Dearden et al.'s moment updating method.
+    * In this function, we use Dearden et al.'s mixture updating method.
     * @tparam RewardMap maps maxsum::FactorID to rewards (double)
     * @tparam VarMap maps maxsum::VarID to maxsum::ValIndex
     * @param priorStates map of all state values immediately before performing
@@ -510,6 +516,31 @@ public:
          {
             continue;
          }
+         
+         //*********************************************************************
+         // Retrieve the prior hyperparameters for the current factor
+         //*********************************************************************
+         QDist& dist = qPos->second;
+         maxsum::ValType& alpha = dist.alpha(priorVars);
+         maxsum::ValType& beta = dist.beta(priorVars);
+         maxsum::ValType& lambda = dist.lambda(priorVars);
+         maxsum::ValType& m = dist.m(priorVars);
+         
+         //*********************************************************************
+         // Retrieve the posterior hyperparameters for the current factor
+         //*********************************************************************
+         const maxsum::ValType nxtAlpha = dist.alpha(postVars);
+         const maxsum::ValType nxtBeta = dist.beta(postVars);
+         const maxsum::ValType nxtLambda = dist.lambda(postVars);
+         const maxsum::ValType nxtM = dist.m(postVars);
+         
+         //*********************************************************************
+         // Calculate various expectations required by update
+         //*********************************************************************
+         const maxsum::ValType expMuTau = 0.0;
+         const maxsum::ValType expTau = 0.0;
+         const maxsum::ValType expTauMuSq = 0.0;
+         const maxsum::ValType expLogTau = 0.0;
 
          //*********************************************************************
          // Update the belief distribution for this Q-value

@@ -318,7 +318,6 @@ namespace dec_brl
          
          bool isBest = (firstBestInd==k);
          result(k) = exactVPI(isBest, firstBestVal, secondBestVal, scalarDist);
-         
       }
       
       //************************************************************************
