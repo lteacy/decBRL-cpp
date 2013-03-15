@@ -455,7 +455,7 @@ public:
     * Updates the factored Q-Values for given observed factored rewards, and
     * given successor states, assuming that the last states and actions where
     * as defined immediately after the last call to the act() function.
-    * In this function, we use Dearden et al.'s mixture updating method.
+    * In this function, we use Dearden et al.'s moment updating method.
     * @tparam RewardMap maps maxsum::FactorID to rewards (double)
     * @tparam VarMap maps maxsum::VarID to maxsum::ValIndex
     * @param priorStates map of all state values immediately before performing
@@ -476,11 +476,13 @@ public:
     const RewardMap& rewards
    )
    {
+      using namespace maxsum;
+      
       //************************************************************************
       // Take the union of the previous states and the last set of actions.
       // This specifies which Q-values need to be updated.
       //************************************************************************
-      std::map<maxsum::VarID,maxsum::ValIndex> priorVars;
+      std::map<VarID,ValIndex> priorVars;
       priorVars.insert(priorStates.begin(),priorStates.end());
       priorVars.insert(actions.begin(),actions.end());
 
@@ -488,7 +490,7 @@ public:
       // Choose greedy actions w.r.t. to current states. These are used to
       // perform the maximisation step in the update.
       //************************************************************************
-      std::map<maxsum::VarID,maxsum::ValIndex> postVars;
+      std::map<VarID,ValIndex> postVars;
       actGreedy(postStates,postVars);
 
       //************************************************************************
@@ -518,34 +520,28 @@ public:
          }
          
          //*********************************************************************
-         // Retrieve the prior hyperparameters for the current factor
+         // Retrieve the hyperparameters for the next local Q-value
          //*********************************************************************
          QDist& dist = qPos->second;
-         maxsum::ValType& alpha = dist.alpha(priorVars);
-         maxsum::ValType& beta = dist.beta(priorVars);
-         maxsum::ValType& lambda = dist.lambda(priorVars);
-         maxsum::ValType& m = dist.m(priorVars);
+         const ValType nxtAlpha = dist.alpha(postVars);
+         const ValType nxtBeta = dist.beta(postVars);
+         const ValType nxtLambda = dist.lambda(postVars);
+         const ValType nxtM = dist.m(postVars);
          
          //*********************************************************************
-         // Retrieve the posterior hyperparameters for the current factor
+         // Calculate the required moments
          //*********************************************************************
-         const maxsum::ValType nxtAlpha = dist.alpha(postVars);
-         const maxsum::ValType nxtBeta = dist.beta(postVars);
-         const maxsum::ValType nxtLambda = dist.lambda(postVars);
-         const maxsum::ValType nxtM = dist.m(postVars);
-         
-         //*********************************************************************
-         // Calculate various expectations required by update
-         //*********************************************************************
-         const maxsum::ValType expMuTau = 0.0;
-         const maxsum::ValType expTau = 0.0;
-         const maxsum::ValType expTauMuSq = 0.0;
-         const maxsum::ValType expLogTau = 0.0;
+         const ValType r = it->second;
+         const ValType expSigma2 = nxtBeta/(nxtAlpha-1);
+         const ValType expR2 = nxtM*nxtM + (1+1/nxtLambda)*expSigma2;
+         const ValType expQ  = r + gamma_i*nxtM;
+         const ValType expQ2 = r*r + 2*gamma_i*r*nxtM + gamma_i*gamma_i*expR2;
 
          //*********************************************************************
-         // Update the belief distribution for this Q-value
+         // Find the corresponding linear index for the current Q-value
+         // distribution, and use the calculated moments to update it.
          //*********************************************************************
-         // TODO Dearden's equations are wrong for this. Need to correct.
+         dist::observe<std::map<VarID,ValIndex>&>(dist,priorVars,expQ,expQ2,1);
 
       } // for loop
 

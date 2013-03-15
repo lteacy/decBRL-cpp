@@ -130,14 +130,14 @@ namespace dist {
     * Default value for alpha hyperparameter.
     */
    template<class RealType, class Policy> const RealType
-      NormalGamma_Tmpl<RealType,Policy>::DEFAULT_ALPHA = 0.00000001;
+      NormalGamma_Tmpl<RealType,Policy>::DEFAULT_ALPHA = 1.00000001;
 
    /**
     * Default value for beta hyperparameter.
     */
    template<class RealType, class Policy> const RealType
       NormalGamma_Tmpl<RealType,Policy>::DEFAULT_BETA
-         = 0.00000000000000001;
+         = 0.00000001;
 
    /**
     * Default value for m hyperparameter
@@ -150,7 +150,7 @@ namespace dist {
     */
    template<class RealType, class Policy> const RealType
       NormalGamma_Tmpl<RealType,Policy>::DEFAULT_LAMBDA
-         = 0.00000000000000000000001;
+         = 0.00000001;
 
    /**
     * Convenience typedef for distributions that use the
@@ -333,10 +333,10 @@ namespace dist {
     * \f}
     * @param[in] n the number of observations.
     */
-   template<class ValType, class Policy> void observe
+   template<class IndexType, class ValType, class Policy> void observe
    (
     NormalGamma_Tmpl<maxsum::DiscreteFunction,Policy>& paramDist,
-    maxsum::ValIndex index,
+    IndexType index,
     const ValType sm,
     const ValType s2,
     const int n

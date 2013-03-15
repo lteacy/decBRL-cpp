@@ -233,11 +233,17 @@ int main(int argc, char* argv[])
    //***************************************************************************
    // Complain if we haven't been given a filename for writing results to file.
    //***************************************************************************
-   if(2!=argc)
+   std::string logFilename = "test.log";
+   //if(2!=argc)
+   //{
+      //std::cout << "Wrong number of arguments!\n";
+      //std::cout << "Usage: " << argv[0] << " DataFilename" << std::endl;
+      //return EXIT_FAILURE;
+   //}
+   
+   if(1<argc)
    {
-      std::cout << "Wrong number of arguments!\n";
-      std::cout << "Usage: " << argv[0] << " DataFilename" << std::endl;
-      return EXIT_FAILURE;
+      logFilename = argv[1];
    }
 
    //***************************************************************************
@@ -275,7 +281,7 @@ int main(int argc, char* argv[])
    //***************************************************************************
    // Create Writer for writing simulation results to CSV file.
    //***************************************************************************
-   CSVWriter writer(argv[1]);
+   CSVWriter writer(logFilename.c_str());
 
    //***************************************************************************
    // Simulate planner interacting with environment for a number of timesteps
