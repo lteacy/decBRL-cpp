@@ -197,25 +197,25 @@ int main()
                pCorrect = &scalarParams2;
             }
 
-            if(vecParams.alpha(k)!=pCorrect->alpha)
+            if(!equalWithinTol_m(vecParams.alpha(k),pCorrect->alpha))
             {
                std::cout << "Incorrect at alpha location " << k << std::endl;
                return EXIT_FAILURE;
             }
 
-            if(vecParams.beta(k)!=pCorrect->beta)
+            if(!equalWithinTol_m(vecParams.beta(k),pCorrect->beta))
             {
                std::cout << "Incorrect beta at location " << k << std::endl;
                return EXIT_FAILURE;
             }
 
-            if(vecParams.lambda(k)!=pCorrect->lambda)
+            if(!equalWithinTol_m(vecParams.lambda(k),pCorrect->lambda))
             {
                std::cout << "Incorrect lambda at location " << k << std::endl;
                return EXIT_FAILURE;
             }
 
-            if(vecParams.m(k)!=pCorrect->m)
+            if(!equalWithinTol_m(vecParams.m(k),pCorrect->m))
             {
                std::cout << "Incorrect mean at location " << k << std::endl;
                return EXIT_FAILURE;
