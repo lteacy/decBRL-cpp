@@ -51,7 +51,7 @@ SET(EXECUTABLE_OUTPUT_PATH ${BIN} CACHE PATH "Output directory for the executabl
 SET(MAXSUM_ROOT ${CMAKE_SOURCE_DIR}/../maxsum-cpp)
 
 # allow linking to these directories
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include ${Boost_INCLUDE_DIRS} ${MAXSUM_ROOT}/include)
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include ${Boost_INCLUDE_DIRS} ${MAXSUM_ROOT}/include ${EIGEN3_INCLUDE_DIR})
 LINK_DIRECTORIES(${LIBRARY_OUTPUT_PATH} ${MAXSUM_ROOT}/lib)
 
 ############################
@@ -87,6 +87,9 @@ ADD_EXECUTABLE(randHarness tests/randHarness.cpp)
 ADD_EXECUTABLE(vpiHarness tests/vpiHarness.cpp)
 ADD_EXECUTABLE(vecHarness tests/vecHarness.cpp)
 ADD_EXECUTABLE(colourHarness tests/colourHarness.cpp)
+ADD_EXECUTABLE(BoostArrayHarness tests/BoostArrayHarness.cpp)
+ADD_EXECUTABLE(DirichletHarness tests/DirichletHarness.cpp)
+ADD_EXECUTABLE(TransBeliefHarness tests/TransBeliefHarness.cpp)
 TARGET_LINK_LIBRARIES(mdpHarness MaxSum DecBRL)
 TARGET_LINK_LIBRARIES(bqMDPHarness MaxSum DecBRL)
 TARGET_LINK_LIBRARIES(bqFacMDPHarness MaxSum DecBRL)
@@ -97,6 +100,9 @@ TARGET_LINK_LIBRARIES(randHarness DecBRL)
 TARGET_LINK_LIBRARIES(vpiHarness MaxSum DecBRL)
 TARGET_LINK_LIBRARIES(vecHarness MaxSum DecBRL)
 TARGET_LINK_LIBRARIES(colourHarness MaxSum DecBRL)
+TARGET_LINK_LIBRARIES(BoostArrayHarness MaxSum DecBRL)
+TARGET_LINK_LIBRARIES(DirichletHarness MaxSum DecBRL)
+TARGET_LINK_LIBRARIES(TransBeliefHarness MaxSum DecBRL)
 
 ###############################
 # enable testing              #
@@ -112,4 +118,7 @@ ADD_TEST(FACTORED_MDP_MODEL_BAYES_TEST ${CMAKE_SOURCE_DIR}/bin/bmFacMDPHarness T
 ADD_TEST(RAND_TEST ${CMAKE_SOURCE_DIR}/bin/randHarness)
 #ADD_TEST(VPI_TEST ${CMAKE_SOURCE_DIR}/bin/vpiHarness)
 ADD_TEST(COLOUR_TEST ${CMAKE_SOURCE_DIR}/bin/colourHarness)
+ADD_TEST(BOOST_ARRAY_TEST ${CMAKE_SOURCE_DIR}/bin/BoostArrayHarness)
+ADD_TEST(DIRICHLET_TEST ${CMAKE_SOURCE_DIR}/bin/DirichletHarness)
+ADD_TEST(TRANS_BELIEF_TEST ${CMAKE_SOURCE_DIR}/bin/TransBeliefHarness)
 
