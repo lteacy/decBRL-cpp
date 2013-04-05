@@ -235,7 +235,6 @@ int main()
     Eigen::MatrixXd sampleMean(expCPT.rows(),expCPT.cols());
     for(int k=0; k<NUM_SAMPLES; ++k)
     {
-        std::cout << "sample: " << k << std::endl;
         //*********************************************************************
         //  Get a sampled CPT and update sum for future reference
         //*********************************************************************
@@ -277,8 +276,8 @@ int main()
     std::cout << "Mean Sampled CPT" << std::endl;
     sampleMean /= NUM_SAMPLES;
     const double VAR_UPPER_BOUND = 0.02; // based on quick Diriclet calculation
-    const double SAMPLE_STDERR = std::sqrt(VAR_UPPER_BOUND*NUM_SAMPLES);
-    const double ACCEPT_PRECISION = SAMPLE_STDERR*2; // no more than 2 std dev
+    const double SAMPLE_STDERR = std::sqrt(VAR_UPPER_BOUND/NUM_SAMPLES);
+    const double ACCEPT_PRECISION = SAMPLE_STDERR*8; // no more than 8 std dev
     std::cout << sampleMean << std::endl;
     
     if(!sampleMean.isApprox(expCPT,ACCEPT_PRECISION))
@@ -288,6 +287,8 @@ int main()
         std::cout << (sampleMean-expCPT).array().abs() << std::endl;
         return EXIT_FAILURE;
     }
+    std::cout << "Sample mean within acceptable precision: ";
+    std::cout << ACCEPT_PRECISION << std::endl;
     
     //**************************************************************************
     // If we get this far, everything passed.

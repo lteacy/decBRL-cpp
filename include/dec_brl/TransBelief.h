@@ -6,6 +6,7 @@
 #ifndef DEC_BRL_TRANS_BELIEF_H
 #define DEC_BRL_TRANS_BELIEF_H
 
+#include <boost/random/gamma_distribution.hpp>
 #include "EigenWithPlugin.h"
 #include <vector>
 #include "common.h"
@@ -253,20 +254,36 @@ namespace dec_brl {
          * Generate a sampled CPT from the Dirichlet distributions.
          * @tparam RandType boost::random UniformRandomNumberGenerator type.
          * @tparam Derived eigen library type for output array.
-         * @param[in] random random generator used to generate samples.
+         * @param random random generator used to generate samples.
          * @param[out] cpt the sampled conditional probability table.
          */
         template<class RandType, class Derived>
         void sample
         (
-         const RandType& random,
+         RandType& random,
          Eigen::DenseBase<Derived>& cpt
         )
         {
+            using namespace boost::random;
             //******************************************************************
-            //  Make the result matrix the correct size to hold the CPT
+            //  Initialise Random Sample using Gamma distribution independent
+            //  variates.
             //******************************************************************
             cpt.derived().resize(alpha_i.rows(),alpha_i.cols());
+            gamma_distribution<double> gamrnd;
+            for(int k=0; k<cpt.size(); ++k)
+            {
+                gamma_distribution<double>::param_type params(alpha_i(k),1);
+                gamrnd.param(params);
+                cpt(k) = gamrnd(random);
+            }
+            
+            //******************************************************************
+            //  In theory, we now just need to normalise, and we're done.
+            //******************************************************************
+            Eigen::Array<double, 1, Eigen::Dynamic> totals;
+            totals = cpt.colwise().sum();
+            cpt.derived().array().rowwise() /= totals;
             
         } // method sample
         
