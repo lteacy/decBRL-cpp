@@ -90,13 +90,13 @@ int main()
     //**************************************************************************
     //  Try to observe a few different values based on linear indices
     //**************************************************************************
-    beliefs.setAlpha(0);
+    beliefs.setAlpha(1);
     int condInd = beliefs.condSize() / 2; // select middle value to update
     int domainInd = beliefs.domainSize() / 2;
     beliefs.observeByInd(condInd, domainInd);
     
     Eigen::Matrix<double, 2*3, 2*3*4> correctValue;
-    correctValue.setConstant(0);
+    correctValue.setConstant(1);
     correctValue(domainInd,condInd) += 1;
     
     if(beliefs.getAlpha() != correctValue)
@@ -171,8 +171,53 @@ int main()
     std::cout << beliefs << std::endl;
     
     //**************************************************************************
+    // Manually Calculate the correct expected CPT for comparision.
+    //**************************************************************************
+    std::cout << "CORRECT EXPECTED CPT CALCUATION" << std::endl;
+    std::cout << correctValue << std::endl;
+    std::cout << "DIVIDED BY" << std::endl;
+    
+    Eigen::RowVectorXd totals(correctValue.cols());
+    totals = correctValue.colwise().sum();
+    
+    std::cout << totals << std::endl;
+    std::cout << "EQUALS" << std::endl;
+    
+    correctValue.array().rowwise() /= totals.array();
+    
+    std::cout << correctValue << std::endl;
+    
+    std::cout << "MARGINALS SHOULD BE ONE" << std::endl;
+    totals = correctValue.colwise().sum();
+
+    std::cout << totals << std::endl;
+    
+    if(!totals.isApproxToConstant(1))
+    {
+        std::cout << "INCORRECT MARGINALS IN TEST HARNESS CODE" << std::endl;
+        return EXIT_FAILURE;
+    }
+    
+    //**************************************************************************
     // Check that the mean function works
     //**************************************************************************
+    std::cout << "PERFORMING CHECK..." << std::endl;
+    Eigen::MatrixXd expCPT;
+    beliefs.getMean(expCPT);
+    
+    if( (correctValue.rows()!=expCPT.rows()) ||
+        (correctValue.cols()!=expCPT.cols()) ||
+        (!expCPT.isApprox(correctValue))     )
+    {
+        std::cout << "Incorrect expected CPT" << std::endl;
+        std::cout << expCPT << std::endl;
+        std::cout << "BUT SHOULD BE" << std::endl;
+        std::cout << correctValue << std::endl;
+        return EXIT_FAILURE;
+    }
+    
+    std::cout << "expCPT is" << std::endl;
+    std::cout << expCPT << std::endl << "ALL OK" << std::endl;
     
     //**************************************************************************
     //  Check that the random generator works

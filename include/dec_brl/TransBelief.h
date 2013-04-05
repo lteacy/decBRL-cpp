@@ -235,6 +235,17 @@ namespace dec_brl {
             //******************************************************************
             observeByVec(condValueCache_i.begin(), condValueCache_i.end(),
                          domainValueCache_i.begin(), domainValueCache_i.end());
+        
+        } // observeByMap
+        
+        /**
+         * Returns the expected CPT given the current beliefs.
+         * @param[out] eigen object in which to store result.
+         */
+        template<class Derived>
+        void getMean(Eigen::DenseBase<Derived>& result)
+        {
+            result=alpha_i.array().rowwise() / alpha_i.array().colwise().sum();
         }
         
         /**
