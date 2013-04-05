@@ -259,7 +259,8 @@ namespace dec_brl {
          int condInd
         )
         {
-            // TODO
+            result.derived().resize(1,alpha_i.cols());
+            result = alpha_i.col(condInd) / alpha_i.col(condInd).sum();
         }
         
         /**
@@ -272,7 +273,9 @@ namespace dec_brl {
          It condEnd
         )
         {
-            // TODO
+            int condInd = maxsum::sub2ind(condSize_i.begin(), condSize_i.end(),
+                                          condStart, condEnd);
+            getMeanByInd(result, condInd);
         }
         
         /**
@@ -284,8 +287,25 @@ namespace dec_brl {
          M1& condMap
         )
         {
-            // TODO
-        }
+            using namespace Eigen;
+            
+            //******************************************************************
+            //  Extract conditional variable values from map
+            //******************************************************************
+            for(int k=0; k<condVars_i.size(); ++k)
+            {
+                int var = condVars_i[k];
+                int val = condMap[var];
+                condValueCache_i[k] = val;
+            }
+            
+            //******************************************************************
+            //  Use value cache to find right CPT to return
+            //******************************************************************
+            getMeanByVec(result, condValueCache_i.begin(),
+                         condValueCache_i.end());
+            
+        } // method getMeanByMap
         
         /**
          * Generate a sampled CPT from the Dirichlet distributions.

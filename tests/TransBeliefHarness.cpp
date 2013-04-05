@@ -230,11 +230,13 @@ int main()
     std::cout << secondCPT.transpose() << std::endl;
     std::cout << expCPT.col(condInd).transpose() << std::endl;
     
-    if( (secondCPT.rows()!=expCPT.rows()) ||
-        (secondCPT.cols()!=expCPT.cols()) ||
+    if( (secondCPT.rows()!=expCPT.rows()) || (secondCPT.cols()!=1) ||
         (!secondCPT.isApprox(expCPT.col(condInd))) )
     {
         std::cout << "Inconsistent expectations" << std::endl;
+        std::cout << "max difference: " << std::endl;
+        Eigen::VectorXd diff = secondCPT-expCPT.col(condInd);
+        std::cout << diff.transpose().array().abs() << std::endl;
         return EXIT_FAILURE;
     }
     
