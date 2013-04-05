@@ -223,6 +223,20 @@ int main()
     //**************************************************************************
     //  Try to get the expCPT for a specific set of conditions
     //**************************************************************************
+    std::cout << "Checking specific expected CPT..." << std::endl;
+    Eigen::VectorXd secondCPT;
+    beliefs.getMeanByMap(secondCPT,condMap);
+    
+    std::cout << secondCPT.transpose() << std::endl;
+    std::cout << expCPT.col(condInd).transpose() << std::endl;
+    
+    if( (secondCPT.rows()!=expCPT.rows()) ||
+        (secondCPT.cols()!=expCPT.cols()) ||
+        (!secondCPT.isApprox(expCPT.col(condInd))) )
+    {
+        std::cout << "Inconsistent expectations" << std::endl;
+        return EXIT_FAILURE;
+    }
     
     //**************************************************************************
     //  Check that the random generator works

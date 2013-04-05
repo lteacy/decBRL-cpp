@@ -251,6 +251,43 @@ namespace dec_brl {
         }
         
         /**
+         * Get expected CPT for given condition (as linear column index)
+         */
+        template<class Derived> void getMeanByInd
+        (
+         Eigen::DenseBase<Derived>& result,
+         int condInd
+        )
+        {
+            // TODO
+        }
+        
+        /**
+         * Get expected CPT for given vector of conditional variable values.
+         */
+        template<class It, class Derived> void getMeanByVec
+        (
+         Eigen::DenseBase<Derived>& result,
+         It condStart,
+         It condEnd
+        )
+        {
+            // TODO
+        }
+        
+        /**
+         * Get expected CPT for given mapped conditional variables.
+         */
+        template<class M1, class Derived> void getMeanByMap
+        (
+         Eigen::DenseBase<Derived>& result,
+         M1& condMap
+        )
+        {
+            // TODO
+        }
+        
+        /**
          * Generate a sampled CPT from the Dirichlet distributions.
          * @tparam RandType boost::random UniformRandomNumberGenerator type.
          * @tparam Derived eigen library type for output array.
