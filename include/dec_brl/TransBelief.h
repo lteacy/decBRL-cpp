@@ -6,7 +6,7 @@
 #ifndef DEC_BRL_TRANS_BELIEF_H
 #define DEC_BRL_TRANS_BELIEF_H
 
-#include <Eigen/Dense>
+#include "EigenWithPlugin.h"
 #include <vector>
 #include "common.h"
 #include <iostream>
@@ -63,6 +63,11 @@ namespace dec_brl {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         
         /**
+         * Default prior value for alpha hyperparameters.
+         */
+        const static double DEFAULT_ALPHA;
+        
+        /**
          * Construct a belief distribution for a conditional probability
          * table CPT with specified condition and domain variables.
          * @pre condition and domain variable IDs must be registered with
@@ -109,6 +114,22 @@ namespace dec_brl {
         }
         
         /**
+         * Returns the total size of the conditional domain of the CPT.
+         */
+        int condSize() const
+        {
+            return 0;
+        }
+        
+        /**
+         * Returns the total domain size of the CPT.
+         */
+        int domainSize() const
+        {
+            return 0;
+        }
+        
+        /**
          * Update beliefs based on observed condition and domain variables
          * stored in associative arrays.
          * @param condInd linear index of observed condition variables
@@ -151,6 +172,11 @@ namespace dec_brl {
         friend std::ostream& dec_brl::operator<<(std::ostream& out, const TransBelief& beliefs);
         
     }; // class TransBelief
+    
+    /**
+     * Default prior value for alpha hyperparameters.
+     */
+    const double TransBelief::DEFAULT_ALPHA = 1;
     
 } // namespace dec_brl
 

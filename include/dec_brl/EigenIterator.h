@@ -12,7 +12,7 @@ namespace dec_brl {
     /**
      * Class for Iterating over the data contained in an eigen3 matrix or array.
      */
-    template<class ArrayType> public class ConstEigenIterator
+    template<class ArrayType> class ConstEigenIterator
     {
     private:
         
@@ -24,7 +24,7 @@ namespace dec_brl {
         /**
          * Object that we are iterating over.
          */
-        ArrayType* pArray_i;
+        const ArrayType* pArray_i;
         
     public:
         
@@ -32,7 +32,7 @@ namespace dec_brl {
          * Copy constructor
          */
         ConstEigenIterator(const ConstEigenIterator& it)
-        : index_i(it.index_i), pArray_i(&array) {}
+        : index_i(it.index_i), pArray_i(it.pArray_i) {}
         
         /**
          * Construct from index and object
@@ -55,7 +55,7 @@ namespace dec_brl {
         ConstEigenIterator& operator=(const ConstEigenIterator& rhs)
         {
             index_i = rhs.index_i;
-            array_i = rhs.array_i;
+            pArray_i = rhs.pArray_i;
             return *this;
         }
         
@@ -73,15 +73,57 @@ namespace dec_brl {
          */
         ConstEigenIterator operator++(int)
         {
-            return ConstEigenIterator(index_i++,*array_i);
+            return ConstEigenIterator(index_i++,*pArray_i);
         }
         
         /**
-         * Deference operator
+         * Subtract constant from iterator
          */
-        template<class ReturnType> ReturnType operator*()
+        ConstEigenIterator operator-(int val)
         {
-            return array_i[index_i];
+            return ConstEigenIterator(index_i-val,*pArray_i);
+        }
+        
+        /**
+         * Add constant to iterator
+         */
+        ConstEigenIterator operator+(int val)
+        {
+            return ConstEigenIterator(index_i+val,*pArray_i);
+        }
+        
+        /**
+         * Find the distance between to iterators.
+         */
+        int operator-(const ConstEigenIterator& rhs)
+        {
+            return index_i-rhs.index_i;
+        }
+        
+        /**
+         * Add constant to this iterator.
+         */
+        ConstEigenIterator& operator+=(int val)
+        {
+            index_i += val;
+            return *this;
+        }
+        
+        /**
+         * Subtract constant from this iterator.
+         */
+        ConstEigenIterator& operator-=(int val)
+        {
+            index_i -= val;
+            return *this;
+        }
+        
+        /**
+         * Dereference operator
+         */
+        const typename ArrayType::Scalar& operator*()
+        {
+            return (*pArray_i)[index_i];
         }
         
         /**
