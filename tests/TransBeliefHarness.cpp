@@ -38,28 +38,6 @@ int main()
     std::cout << beliefs << std::endl;
     
     //**************************************************************************
-    //  Ensure that is equal to prior
-    //**************************************************************************
-    if(beliefs.getAlpha().isApproxToConstant(TransBelief::DEFAULT_ALPHA))
-    {
-        std::cout << "Hyperparameters incorrect - should all be "
-        << TransBelief::DEFAULT_ALPHA << std::endl;
-        return EXIT_FAILURE;
-    }
-    
-    //**************************************************************************
-    //  Try to set hyperparameters to some constant scalar
-    //**************************************************************************
-    const double NEW_PRIOR = 2.5;
-    beliefs.setAlpha(NEW_PRIOR);
-    if(beliefs.getAlpha().isApproxToConstant(NEW_PRIOR))
-    {
-        std::cout << "Hyperparameters incorrect - should all be "
-        << TransBelief::DEFAULT_ALPHA << std::endl;
-        return EXIT_FAILURE;
-    }
-    
-    //**************************************************************************
     // Check that the reported domain sizes are correct.
     // Should be the product of the domain sizes for corresponding variables
     //**************************************************************************
@@ -78,6 +56,36 @@ int main()
         << " should be " << (2*3) << std::endl;
         return EXIT_FAILURE;
     }
+    std::cout << "Domain sizes: OK" << std::endl;
+    
+    //**************************************************************************
+    //  Ensure that is equal to prior
+    //**************************************************************************
+    if(!beliefs.getAlpha().isApproxToConstant(TransBelief::DEFAULT_ALPHA))
+    {
+        std::cout << "Hyperparameters incorrect - should all be "
+        << TransBelief::DEFAULT_ALPHA << std::endl;
+        return EXIT_FAILURE;
+    }
+    std::cout << "Prior OK" << std::endl;
+    
+    //**************************************************************************
+    //  Try to set hyperparameters to some constant scalar
+    //**************************************************************************
+    const double NEW_PRIOR = 2.5;
+    beliefs.setAlpha(NEW_PRIOR);
+    
+    std::cout << "Beliefs:" << std::endl;
+    std::cout << beliefs << std::endl;
+    
+    if(!beliefs.getAlpha().isApproxToConstant(NEW_PRIOR))
+    {
+        std::cout << "Hyperparameters incorrect after set - should all be "
+        << NEW_PRIOR << std::endl;
+        return EXIT_FAILURE;
+    }
+    
+    std::cout << "Prior reset OK" << std::endl;
     
     //**************************************************************************
     //  Try to observe a few different values based on linear indices
@@ -99,6 +107,8 @@ int main()
         return EXIT_FAILURE;
     }
     
+    std::cout << "Linear Observation OK" << std::endl;
+    
     //**************************************************************************
     // Try to observe a few different values based on sub indices
     //**************************************************************************
@@ -113,6 +123,9 @@ int main()
     domainInd = maxsum::sub2ind(sizes.begin(), sizes.end()-1,
                                 domainVals.begin(), domainVals.end());
     
+    correctValue(domainInd,condInd) += 1;
+    beliefs.observeByVec(condVals.begin(), condVals.end(), domainVals.begin(), domainVals.end());
+    
     if(beliefs.getAlpha() != correctValue)
     {
         std::cout << "Incorrect posterior hyperparameters" << std::endl;
@@ -122,8 +135,49 @@ int main()
         return EXIT_FAILURE;
     }
     
+    std::cout << "Vector Observation OK" << std::endl;
+    
     //**************************************************************************
     //  Try to observe a few different values based on mapped indices
     //**************************************************************************
+    correctValue(domainInd,condInd) += 1; // observe same again
+    beliefs.observeByMap(condInd, domainInd);
+    
+    condVals << 1, 1, 0;
+    domainVals << 1, 2;
+    
+    condInd = maxsum::sub2ind(sizes.begin(), sizes.end(),
+                              condVals.begin(), condVals.end());
+    
+    domainInd = maxsum::sub2ind(sizes.begin(), sizes.end()-1,
+                                domainVals.begin(), domainVals.end());
+    
+    correctValue(domainInd,condInd) += 1; // observe something else
+    beliefs.observeByMap(condInd, domainInd);
+    
+    if(beliefs.getAlpha() != correctValue)
+    {
+        std::cout << "Incorrect posterior hyperparameters" << std::endl;
+        std::cout << beliefs.getAlpha() << std::endl;
+        std::cout << "BUT SHOULD BE" << std::endl;
+        std::cout << correctValue << std::endl;
+        return EXIT_FAILURE;
+    }
+    
+    std::cout << "Map Observation OK" << std::endl;
+    
+    //**************************************************************************
+    // Check that the mean function works
+    //**************************************************************************
+    
+    //**************************************************************************
+    //  Check that the random generator works
+    //**************************************************************************
+    
+    //**************************************************************************
+    // If we get this far, everything passed.
+    //**************************************************************************
+    std::cout << "All TransBelief tests passed" << std::endl;
+    return EXIT_SUCCESS;
     
 } // function main

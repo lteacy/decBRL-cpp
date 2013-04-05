@@ -9,6 +9,7 @@
 #include "EigenWithPlugin.h"
 #include <vector>
 #include "common.h"
+#include "register.h"
 #include <iostream>
 
 namespace dec_brl {
@@ -57,6 +58,20 @@ namespace dec_brl {
          */
         Eigen::VectorXi domainSize_i;
         
+        /**
+         * Statically allocated vector for storing conditional variable values.
+         * Putting this here avoids unnecessary temporary.
+         * @see TransBelief::observeByMap
+         */
+        Eigen::VectorXi condValueCache_i;
+        
+        /**
+         * Statically allocated vector for storing conditional variable values.
+         * Putting this here avoids unnecessary temporary.
+         * @see TransBelief::observeByMap
+         */
+        Eigen::VectorXi domainValueCache_i;
+        
     public:
         
         // Make new operator work with eigen3 library
@@ -76,24 +91,45 @@ namespace dec_brl {
          * contained elements of type maxsum::VarID, and [] operator providing
          * access to each element.
          * @tparam VecType2 same semantics as VecType2, but for 2nd parameter.
-         * @param cond vector of registered condition variable ids
+         * @param cond vector of registered condition variable ids.
          * @param domain vector of registered domain variable ids.
+         * @param priorAlpha prior value for all \f$\alpha_i\f$ hyperparameters.
          */
         template<class VecType1, class VecType2> TransBelief
-            (const VecType1& cond, const VecType2& domain)
+        (
+         const VecType1& cond,
+         const VecType2& domain,
+         const double priorAlpha=DEFAULT_ALPHA
+        )
         : alpha_i(), condVars_i(cond.size()), condSize_i(cond.size()),
-          domainVars_i(domain.size()), domainSize_i(domain.size())
+          domainVars_i(domain.size()), domainSize_i(domain.size()),
+          condValueCache_i(cond.size()), domainValueCache_i(domain.size())
         {
             //******************************************************************
-            // Set 
+            // Set conditional variables and cache their registered domain
+            // sizes.
             //******************************************************************
+            for(int k=0; k<cond.size(); ++k)
+            {
+                condVars_i[k] = cond[k];
+                condSize_i[k] = maxsum::getDomainSize(cond[k]);
+            }
             
             //******************************************************************
+            // Do the same for the domain variables
             //******************************************************************
+            for(int k=0; k<domain.size(); ++k)
+            {
+                domainVars_i[k] = domain[k];
+                domainSize_i[k] = maxsum::getDomainSize(domain[k]);
+            }
             
             //******************************************************************
-            //
+            //  Initialise the Dirichlet Hyperparameters and set them all
+            //  equal to the specified prior value.
             //******************************************************************
+            alpha_i.setConstant(domainSize_i.prod(), condSize_i.prod(),
+                                priorAlpha);
             
         } // constructor
         
@@ -110,7 +146,7 @@ namespace dec_brl {
          */
         void setAlpha(double scalar)
         {
-            
+            alpha_i.setConstant(scalar);
         }
         
         /**
@@ -118,7 +154,7 @@ namespace dec_brl {
          */
         int condSize() const
         {
-            return 0;
+            return alpha_i.cols();
         }
         
         /**
@@ -126,7 +162,7 @@ namespace dec_brl {
          */
         int domainSize() const
         {
-            return 0;
+            return alpha_i.rows();
         }
         
         /**
@@ -137,7 +173,7 @@ namespace dec_brl {
          */
         void observeByInd(int condInd, int domainInd)
         {
-            
+            alpha_i(domainInd,condInd) += 1;
         }
         
         /**
@@ -150,7 +186,14 @@ namespace dec_brl {
         template<class It1, class It2> void observeByVec
             (It1 condStart, It1 condEnd, It2 domainStart, It2 domainEnd)
         {
+            int condInd = maxsum::sub2ind(condSize_i.begin(), condSize_i.end(),
+                                          condStart, condEnd);
             
+            int domainInd = maxsum::sub2ind(domainSize_i.begin(),
+                                            domainSize_i.end(),
+                                            domainStart, domainEnd);
+            
+            observeByInd(condInd, domainInd);
         }
         
         /**
@@ -158,12 +201,26 @@ namespace dec_brl {
          * stored in associative arrays. Each map should overload the 
          * [] operator s.t. <code>map[x]</code> is the value observed for
          * the variable with maxsum::VarID <code>x</code>.
-         * @param condInd map of observed condition variable values
-         * @param domainInd map of observed observed domain variable values
+         * @param condMap map of observed condition variable values
+         * @param domainMap map of observed observed domain variable values
          */
-        template<class M1, class M2> void observeByMap(M1 condInd, M2 domainInd)
+        template<class M1, class M2> void observeByMap(M1 condMap, M2 domainMap)
         {
+            using namespace Eigen;
             
+            //******************************************************************
+            //  Extract conditional variable values from map
+            //******************************************************************
+            for(ConstEigenIterator<DenseBase<Vector3i> >
+                varIt=condVars_i.begin();
+                varIt!=condVars_i.end(); ++varIt)
+            {
+                
+            }
+            
+            //******************************************************************
+            //  Extract domain variable values from map
+            //******************************************************************
         }
         
         /**
