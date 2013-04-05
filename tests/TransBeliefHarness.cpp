@@ -7,7 +7,8 @@
 #include <dec_brl/TransBelief.h>
 #include "register.h"
 #include <iostream>
-
+#include <boost/random/mersenne_twister.hpp>
+#include <cmath>
 
 /**
  * Main function.
@@ -220,8 +221,73 @@ int main()
     std::cout << expCPT << std::endl << "ALL OK" << std::endl;
     
     //**************************************************************************
+    //  Try to get the expCPT for a specific set of conditions
+    //**************************************************************************
+    
+    //**************************************************************************
     //  Check that the random generator works
     //**************************************************************************
+    std::cout << "Trying to sample some CPTs" << std::endl;
+    const int NUM_SAMPLES = 100;
+    boost::mt19937 randGenerator; // generates uniform random numbers
+    Eigen::MatrixXd oldSample(expCPT);
+    Eigen::MatrixXd newSample(expCPT);
+    Eigen::MatrixXd sampleMean(expCPT.rows(),expCPT.cols());
+    for(int k=0; k<NUM_SAMPLES; ++k)
+    {
+        std::cout << "sample: " << k << std::endl;
+        //*********************************************************************
+        //  Get a sampled CPT and update sum for future reference
+        //*********************************************************************
+        beliefs.sample(randGenerator,newSample);
+        sampleMean += newSample;
+        
+        //*********************************************************************
+        //  Check that its not the same as the previous sample, which would be
+        //  odd.
+        //*********************************************************************
+        if(oldSample.isApprox(newSample))
+        {
+            std::cout << "this sample matches the last sample - VERY UNLIKELY";
+            std::cout << std::endl;
+            return EXIT_FAILURE;
+        }
+        
+        //*********************************************************************
+        //  Check that this is a valid CPT (each column sums to one)
+        //*********************************************************************
+        Eigen::RowVectorXd sampleTotals = newSample.colwise().sum();
+        if(!sampleTotals.isApproxToConstant(1))
+        {
+            std::cout << "Sampled totals do not all sum to one:" << std::endl;
+            std::cout << sampleTotals << std::endl;
+            return EXIT_FAILURE;
+        }
+        
+        //*********************************************************************
+        //  Store this sample for comparsion in the next iteration
+        //*********************************************************************
+        newSample.swap(oldSample);
+        
+    } // for loop
+    
+    //**************************************************************************
+    //  Ensure that sample mean is reasonably close to the actual mean
+    //**************************************************************************
+    std::cout << "Mean Sampled CPT" << std::endl;
+    sampleMean /= NUM_SAMPLES;
+    const double VAR_UPPER_BOUND = 0.02; // based on quick Diriclet calculation
+    const double SAMPLE_STDERR = std::sqrt(VAR_UPPER_BOUND*NUM_SAMPLES);
+    const double ACCEPT_PRECISION = SAMPLE_STDERR*2; // no more than 2 std dev
+    std::cout << sampleMean << std::endl;
+    
+    if(!sampleMean.isApprox(expCPT,ACCEPT_PRECISION))
+    {
+        std::cout << "Some sample means differ by more than expected\n";
+        std::cout << "DIFFERENCE: (threshold " << ACCEPT_PRECISION << ")\n";
+        std::cout << (sampleMean-expCPT).array().abs() << std::endl;
+        return EXIT_FAILURE;
+    }
     
     //**************************************************************************
     // If we get this far, everything passed.

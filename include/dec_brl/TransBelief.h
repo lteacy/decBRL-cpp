@@ -245,8 +245,30 @@ namespace dec_brl {
         template<class Derived>
         void getMean(Eigen::DenseBase<Derived>& result)
         {
+            result.derived().resize(alpha_i.rows(),alpha_i.cols());
             result=alpha_i.array().rowwise() / alpha_i.array().colwise().sum();
         }
+        
+        /**
+         * Generate a sampled CPT from the Dirichlet distributions.
+         * @tparam RandType boost::random UniformRandomNumberGenerator type.
+         * @tparam Derived eigen library type for output array.
+         * @param[in] random random generator used to generate samples.
+         * @param[out] cpt the sampled conditional probability table.
+         */
+        template<class RandType, class Derived>
+        void sample
+        (
+         const RandType& random,
+         Eigen::DenseBase<Derived>& cpt
+        )
+        {
+            //******************************************************************
+            //  Make the result matrix the correct size to hold the CPT
+            //******************************************************************
+            cpt.derived().resize(alpha_i.rows(),alpha_i.cols());
+            
+        } // method sample
         
         /**
          * Get << operator access to private members so that can be printed.
