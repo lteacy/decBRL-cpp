@@ -90,12 +90,13 @@ int main()
     //**************************************************************************
     //  Try to observe a few different values based on linear indices
     //**************************************************************************
+    beliefs.setAlpha(0);
     int condInd = beliefs.condSize() / 2; // select middle value to update
     int domainInd = beliefs.domainSize() / 2;
     beliefs.observeByInd(condInd, domainInd);
     
     Eigen::Matrix<double, 2*3, 2*3*4> correctValue;
-    correctValue.setConstant(NEW_PRIOR);
+    correctValue.setConstant(0);
     correctValue(domainInd,condInd) += 1;
     
     if(beliefs.getAlpha() != correctValue)
@@ -140,20 +141,20 @@ int main()
     //**************************************************************************
     //  Try to observe a few different values based on mapped indices
     //**************************************************************************
-    correctValue(domainInd,condInd) += 1; // observe same again
-    beliefs.observeByMap(condInd, domainInd);
-    
-    condVals << 1, 1, 0;
-    domainVals << 1, 2;
+    Eigen::Vector4i condMap;    // using vectors as maps
+    Eigen::Vector3i domainMap;  // e.g. condMap[var] = val    
+    condMap << 0, 1, 1, 0;
+    domainMap << 0, 1, 2;
     
     condInd = maxsum::sub2ind(sizes.begin(), sizes.end(),
-                              condVals.begin(), condVals.end());
+                              condMap.begin()+1, condMap.end());
     
     domainInd = maxsum::sub2ind(sizes.begin(), sizes.end()-1,
-                                domainVals.begin(), domainVals.end());
+                                domainMap.begin()+1, domainMap.end());
     
-    correctValue(domainInd,condInd) += 1; // observe something else
-    beliefs.observeByMap(condInd, domainInd);
+    correctValue(domainInd,condInd) += 2; // observe something twice
+    beliefs.observeByMap(condMap, domainMap);
+    beliefs.observeByMap(condMap, domainMap);
     
     if(beliefs.getAlpha() != correctValue)
     {
@@ -165,6 +166,9 @@ int main()
     }
     
     std::cout << "Map Observation OK" << std::endl;
+    
+    std::cout << "Posterior:" << std::endl;
+    std::cout << beliefs << std::endl;
     
     //**************************************************************************
     // Check that the mean function works

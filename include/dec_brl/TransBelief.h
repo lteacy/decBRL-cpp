@@ -204,23 +204,37 @@ namespace dec_brl {
          * @param condMap map of observed condition variable values
          * @param domainMap map of observed observed domain variable values
          */
-        template<class M1, class M2> void observeByMap(M1 condMap, M2 domainMap)
+        template<class M1, class M2> void observeByMap
+        (
+         M1& condMap,
+         M2& domainMap
+        )
         {
             using namespace Eigen;
             
             //******************************************************************
             //  Extract conditional variable values from map
             //******************************************************************
-            for(ConstEigenIterator<DenseBase<Vector3i> >
-                varIt=condVars_i.begin();
-                varIt!=condVars_i.end(); ++varIt)
+            for(int k=0; k<condVars_i.size(); ++k)
             {
-                
+                int var = condVars_i[k];
+                int val = condMap[var];
+                condValueCache_i[k] = val;
             }
             
             //******************************************************************
             //  Extract domain variable values from map
             //******************************************************************
+            for(int k=0; k<domainVars_i.size(); ++k)
+            {
+                domainValueCache_i[k] = domainMap[domainVars_i[k]];
+            }
+            
+            //******************************************************************
+            //  Use value cache to find and update observed element
+            //******************************************************************
+            observeByVec(condValueCache_i.begin(), condValueCache_i.end(),
+                         domainValueCache_i.begin(), domainValueCache_i.end());
         }
         
         /**
