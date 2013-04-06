@@ -3,7 +3,7 @@
  * Test harness for special functions required for certain calculations.
  */
 
-#include "special.h"
+#include "dec_brl/special.h"
 #include <iostream>
 
 /**
