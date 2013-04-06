@@ -90,6 +90,7 @@ ADD_EXECUTABLE(colourHarness tests/colourHarness.cpp)
 ADD_EXECUTABLE(BoostArrayHarness tests/BoostArrayHarness.cpp)
 ADD_EXECUTABLE(DirichletHarness tests/DirichletHarness.cpp)
 ADD_EXECUTABLE(TransBeliefHarness tests/TransBeliefHarness.cpp)
+ADD_EXECUTABLE(specialHarness tests/specialHarness.cpp)
 TARGET_LINK_LIBRARIES(mdpHarness MaxSum DecBRL)
 TARGET_LINK_LIBRARIES(bqMDPHarness MaxSum DecBRL)
 TARGET_LINK_LIBRARIES(bqFacMDPHarness MaxSum DecBRL)
@@ -103,6 +104,7 @@ TARGET_LINK_LIBRARIES(colourHarness MaxSum DecBRL)
 TARGET_LINK_LIBRARIES(BoostArrayHarness MaxSum DecBRL)
 TARGET_LINK_LIBRARIES(DirichletHarness MaxSum DecBRL)
 TARGET_LINK_LIBRARIES(TransBeliefHarness MaxSum DecBRL)
+TARGET_LINK_LIBRARIES(specialHarness MaxSum DecBRL)
 
 ###############################
 # enable testing              #
@@ -121,4 +123,5 @@ ADD_TEST(COLOUR_TEST ${CMAKE_SOURCE_DIR}/bin/colourHarness)
 ADD_TEST(BOOST_ARRAY_TEST ${CMAKE_SOURCE_DIR}/bin/BoostArrayHarness)
 ADD_TEST(DIRICHLET_TEST ${CMAKE_SOURCE_DIR}/bin/DirichletHarness)
 ADD_TEST(TRANS_BELIEF_TEST ${CMAKE_SOURCE_DIR}/bin/TransBeliefHarness)
+ADD_TEST(SPECIAL_TEST ${CMAKE_SOURCE_DIR}/bin/specialHarness)
 
