@@ -49,8 +49,8 @@ With the exception of the files contained under the include/polygamma and src/po
 In the text below, all references to 'this software' refers to the files contained within this project, excluding only the LGPL licensed code contained under the polygamma subdirectories.
 
 See also:
-[Burkardt]: http://people.sc.fsu.edu/~jburkardt/  "John Burkardt's website"
-[LGPL]: https://github.com/lteacy/decBRL-cpp/blob/learning/src/polygamma/README.txt "The LGPL license"
+* John Burkardt's website http://people.sc.fsu.edu/~jburkardt/
+* The LGPL license https://github.com/lteacy/decBRL-cpp/blob/learning/src/polygamma/README.txt
 
 BSD License
 -----------
