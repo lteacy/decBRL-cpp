@@ -79,18 +79,22 @@ int main()
             std::cout << "BAD X: " << correctX << "!=" << computeX << std::endl;
             return EXIT_FAILURE;
         }
+        std::cout << "X..";
         
-        if(!equalWithinTol_m(correctY, computeY))
-        {
-            std::cout << "BAD Y: " << correctY << "!=" << computeY << std::endl;
-            return EXIT_FAILURE;
-        }
         
         if(!equalWithinTol_m(correctD, computeD))
         {
             std::cout << "BAD D: " << correctD << "!=" << computeD << std::endl;
             return EXIT_FAILURE;
         }
+        std::cout << "D..";
+        
+        if(!equalWithinTol_m(correctY, computeY))
+        {
+            std::cout << "BAD Y: " << correctY << "!=" << computeY << std::endl;
+            return EXIT_FAILURE;
+        }
+        std::cout << "Y..";
         
         std::cout << "OK" << std::endl;
         

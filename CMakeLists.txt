@@ -70,8 +70,10 @@ LINK_DIRECTORIES(${LIBRARY_OUTPUT_PATH} ${MAXSUM_ROOT}/lib)
 #############################
 # compile project library   #
 #############################
-FILE(GLOB DEC_BRL_SRC src/*.cpp)
+FILE(GLOB DEC_BRL_SRC src/dec_brl/*.cpp)
+FILE(GLOB POLYGAMMA_SRC src/polygamma/*.cpp)
 ADD_LIBRARY(DecBRL SHARED ${DEC_BRL_SRC})
+ADD_LIBRARY(Polygamma SHARED ${POLYGAMMA_SRC})
 TARGET_LINK_LIBRARIES(DecBRL ${Boost_LIBRARIES})
 
 ###############################
@@ -92,10 +94,10 @@ ADD_EXECUTABLE(DirichletHarness tests/DirichletHarness.cpp)
 ADD_EXECUTABLE(TransBeliefHarness tests/TransBeliefHarness.cpp)
 ADD_EXECUTABLE(specialHarness tests/specialHarness.cpp)
 TARGET_LINK_LIBRARIES(mdpHarness MaxSum DecBRL)
-TARGET_LINK_LIBRARIES(bqMDPHarness MaxSum DecBRL)
-TARGET_LINK_LIBRARIES(bqFacMDPHarness MaxSum DecBRL)
-TARGET_LINK_LIBRARIES(bmMDPHarness MaxSum DecBRL)
-TARGET_LINK_LIBRARIES(bmFacMDPHarness MaxSum DecBRL)
+TARGET_LINK_LIBRARIES(bqMDPHarness MaxSum DecBRL Polygamma)
+TARGET_LINK_LIBRARIES(bqFacMDPHarness MaxSum DecBRL Polygamma)
+TARGET_LINK_LIBRARIES(bmMDPHarness MaxSum DecBRL Polygamma)
+TARGET_LINK_LIBRARIES(bmFacMDPHarness MaxSum DecBRL Polygamma)
 TARGET_LINK_LIBRARIES(facMDPHarness MaxSum DecBRL)
 TARGET_LINK_LIBRARIES(randHarness DecBRL)
 TARGET_LINK_LIBRARIES(vpiHarness MaxSum DecBRL)
@@ -104,7 +106,7 @@ TARGET_LINK_LIBRARIES(colourHarness MaxSum DecBRL)
 TARGET_LINK_LIBRARIES(BoostArrayHarness MaxSum DecBRL)
 TARGET_LINK_LIBRARIES(DirichletHarness MaxSum DecBRL)
 TARGET_LINK_LIBRARIES(TransBeliefHarness MaxSum DecBRL)
-TARGET_LINK_LIBRARIES(specialHarness MaxSum DecBRL)
+TARGET_LINK_LIBRARIES(specialHarness MaxSum Polygamma DecBRL)
 
 ###############################
 # enable testing              #
