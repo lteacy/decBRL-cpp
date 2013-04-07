@@ -50,7 +50,15 @@ namespace dec_brl {
          */
         Tuple operator()(RealType y)
         {
-            return Tuple(0,0);  
+            // NOTE currently boost as an implementation of digamma,
+            // but no implementation for trigamma. We therefore fallback on
+            // an implementations due to Jose Bernardo and BE Schneider,
+            // ported from FORTRAN to C++ by John Burkardt and distributed
+            // under the GPL license. Need to check license compatiblity
+            // first though....
+            double x = std::log(y) - boost::math::digamma(y);
+            //double d = 1/y - trigamma TODO
+            return Tuple(x,0);
         }
     
     }; // DeardenG class
