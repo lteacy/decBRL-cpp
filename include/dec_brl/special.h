@@ -43,13 +43,20 @@ namespace dec_brl {
         
         /**
          * Returns the result of this function.
-         * This function is defined as
+         * For computational reasons, we actually supply the log of y as input.
+         * This is because we are primarily interested in calculating the 
+         * alpha parameter for gamma distributions by taking the inverse of
+         * this equation. The derivative is more stable w.r.t to log alpha,
+         * making it more favourable to root finding. Also, the shape of
+         * the gamma distribution varies little for large alpha, so as long
+         * as we can estimate its log reasonably well, we'll be close enough.
+         * @param ly the natural logrithm of the input, y.
          * \f[
-         * x = \log y - \psi(y)
+         * x = \ln y - \psi(y) = ly - \psi(\exp[ly])
          * \f]
          * where \f$\psi\f$ is the digamma function.
          */
-        Tuple operator()(RealType y)
+        Tuple operator()(RealType ly)
         {
             //******************************************************************
             // NOTE currently boost as an implementation of digamma,
@@ -68,27 +75,28 @@ namespace dec_brl {
             // also available in the polygamma namespace under the LGPL license.
             // Could also use this for consistency.
             //******************************************************************
-            double x= std::log(y) - boost::math::digamma(y,policy_i);
-            double d = 1/y - polygamma::trigamma(y); // boost has no trigamma
+            double y = std::exp(ly);
+            double x= ly - boost::math::digamma(y,policy_i);
+            double d = 1 - polygamma::trigamma(y)*y;
             return Tuple(x,d);
         }
     
     }; // DeardenG class
     
     /**
-     * Maximum value that may be returned by the deardenF function.
+     * Log of maximum value that may be returned by the deardenF function.
      * This saves on computation, and if the true value is larger, the effect
      * on our application is not big, since the shape of the gamma distribution
      * is similar for all large alpha.
      */
-    const static double MAX_DEARDEN_F = 100;
+    const static double MAX_LOG_DEARDEN_F = 6.0;
     
     /**
-     * Minimum value that may be returned by the deardenF function.
+     * Log of minimum value that may be returned by the deardenF function.
      * This saves on computation, but also, we're only interested in alpha
      * hyperparameters that result in proper gamma distributions i.e. > 1.0.
      */
-    const static double MIN_DEARDEN_F = 1.0001;
+    const static double MIN_LOG_DEARDEN_F = 0.0001;
     
     /**
      * Dearden's f function.
@@ -103,13 +111,15 @@ namespace dec_brl {
     template<class RealType, class PolicyType>
     RealType deardenF(RealType x, PolicyType policy)
     {
+        using namespace boost::math::tools;
+        
         //**********************************************************************
         //  No closed form solution exists for this function, we have to solve
         //  by finding the root of the inverse - deardenG.
         //
         //  We start by guessing the true value.
         //**********************************************************************
-        //double guess = 2.0; // constant guess for now
+        double guess = 2.0; // constant guess for now
         
         //**********************************************************************
         // Set sensible minimum and maximum values. In our case, we're only
@@ -118,7 +128,12 @@ namespace dec_brl {
         // no significantly change the shape of the gamma distribution, so might
         // as well limit the max to save us looking forever.
         //**********************************************************************
-        return 0.0;
+        boost::uintmax_t& max_iter = 10; // max no. iterations to find solution
+        const int digits = 8; // no. required binary digits in solution mantissa
+        DeardenG<> GFunc; // function we want to find the root for
+                          // need this to return 0 for the point we are interested in, right?
+                          // so need to subtract target value.
+        return newton_raphson_iterate(GFunc, guess, MIN_LOG_DEARDEN_F, MAX_LOG_DEARDEN_F, digits, max_iter);
         
     } // deardenF
     

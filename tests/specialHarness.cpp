@@ -12,9 +12,10 @@ namespace {
 /**
  * Check that two doubles are equal within margin of error.
  */
-bool equalWithinTol_m(double v1, double v2, double tol=0.01)
+bool equalWithinTol_m(double v1, double v2, double tol=0.001)
 {
-    return tol > (std::abs(v1-v2)/std::min(v1,v2));
+   double error = (std::abs(v1-v2)/std::abs(std::min(v1,v2)));
+    return tol > error;
 }
     
 } // module namespace
@@ -49,7 +50,8 @@ int main()
     //  Check that we can reproduce these results with reasonable accuracy
     //**************************************************************************
     DeardenG<> deardenG;
-    for(int k=0; k<20; ++k)
+    int errorCount = 0;
+    for(int k=0; k<19; ++k)
     {
         double correctX = x[k];
         double correctY = y[k];
@@ -57,11 +59,12 @@ int main()
         
         //**********************************************************************
         //  Try to calculate X and its derivative D (w.r.t. Y)
+        //  Note deardenG is w.r.t. to log Y
         //**********************************************************************
         std::cout << "Calculating x[" << k << "], d[" << k << "]" << std::flush;
-        DeardenG<>::Tuple tupleX = deardenG(correctY);
+        DeardenG<>::Tuple tupleX = deardenG(std::log(correctY));
         double computeX = boost::math::get<0>(tupleX);
-        double computeD = boost::math::get<1>(tupleX);
+        double computeD = boost::math::get<1>(tupleX)/correctY;
         
         //**********************************************************************
         //  Try to estimate Y
@@ -77,27 +80,46 @@ int main()
         if(!equalWithinTol_m(correctX, computeX))
         {
             std::cout << "BAD X: " << correctX << "!=" << computeX << std::endl;
-            return EXIT_FAILURE;
+            ++errorCount;
         }
-        std::cout << "X..";
-        
+        else
+        {
+            std::cout << "X..";
+        }
         
         if(!equalWithinTol_m(correctD, computeD))
         {
             std::cout << "BAD D: " << correctD << "!=" << computeD << std::endl;
-            return EXIT_FAILURE;
+            ++errorCount;
         }
-        std::cout << "D..";
+        else
+        {
+            std::cout << "D..";
+        }
         
         if(!equalWithinTol_m(correctY, computeY))
         {
             std::cout << "BAD Y: " << correctY << "!=" << computeY << std::endl;
-            return EXIT_FAILURE;
+            ++errorCount;
         }
-        std::cout << "Y..";
+        else
+        {
+            std::cout << "Y..OK";
+        }
         
-        std::cout << "OK" << std::endl;
+        std::cout << std::endl;
         
     } // for loop
+    
+    if(0==errorCount)
+    {
+        std::cout << "All OK" << std::endl;
+        return EXIT_SUCCESS;
+    }
+    else
+    {
+        std::cout << "Number of Errors: " << errorCount << std::endl;
+        return EXIT_FAILURE;
+    }
     
 } // function main
