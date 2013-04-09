@@ -5,6 +5,7 @@
 
 #include "dec_brl/special.h"
 #include <iostream>
+#include <algorithm>
 
 // private module namespace
 namespace {
@@ -12,7 +13,7 @@ namespace {
 /**
  * Check that two doubles are equal within margin of error.
  */
-bool equalWithinTol_m(double v1, double v2, double tol=0.001)
+bool equalWithinTol_m(double v1, double v2, double tol=0.002)
 {
    double error = (std::abs(v1-v2)/std::abs(std::min(v1,v2)));
     return tol > error;
@@ -62,8 +63,9 @@ int main()
         //  Note deardenG is w.r.t. to log Y
         //**********************************************************************
         std::cout << "Calculating x[" << k << "], d[" << k << "]" << std::flush;
+        deardenG.setTarget(correctX);
         DeardenG<>::Tuple tupleX = deardenG(std::log(correctY));
-        double computeX = boost::math::get<0>(tupleX);
+        double computeX = boost::math::get<0>(tupleX)+correctX;
         double computeD = boost::math::get<1>(tupleX)/correctY;
         
         //**********************************************************************
@@ -97,14 +99,21 @@ int main()
             std::cout << "D..";
         }
         
-        if(!equalWithinTol_m(correctY, computeY))
+        //**********************************************************************
+        //  In the case of Y, we place a threshold on this because we are only
+        //  interested in values more than 1 (since these will be used as
+        //  alpha parameters for gamma distributions). Therefore, we actually
+        //  compare against the bound, if the correctY is less than this bound.
+        //**********************************************************************
+        double targetY = std::max(correctY,std::exp(MIN_LOG_DEARDEN_F));
+        if(!equalWithinTol_m(targetY, computeY))
         {
             std::cout << "BAD Y: " << correctY << "!=" << computeY << std::endl;
             ++errorCount;
         }
         else
         {
-            std::cout << "Y..OK";
+            std::cout << "Y=" << computeY << " ..OK";
         }
         
         std::cout << std::endl;

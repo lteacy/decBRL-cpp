@@ -15,8 +15,10 @@
 namespace dec_brl {
     
     /**
-     * Class used to calculate Dearden's g function and its derivative.
-     * This is required to calculate g's inverse, the f function.
+     * Class that provides objective function for calculating Dearden's f
+     * function. Essentially calculates the error in the inverse function for
+     * a given guess, along with its derivative. Called DeardenG after the
+     * inverse of f, denoted g.
      */
     template<class RealType=double,
              class PolicyType=boost::math::policies::policy<> >
@@ -29,6 +31,11 @@ namespace dec_brl {
          */
         PolicyType policy_i;
         
+        /**
+         * Target value for the inverse.
+         */
+        RealType targetValue_i;
+        
     public:
         
         /**
@@ -38,8 +45,18 @@ namespace dec_brl {
         
         /**
          * Default constructor.
+         * @param[in] target target value of Dearden's G function that we
+         * want to achieve.
          */
-        DeardenG() : policy_i() {}
+        DeardenG(RealType target=0.0) : policy_i(), targetValue_i(target) {}
+        
+        /**
+         * Set a new target value.
+         */
+        void setTarget(RealType target)
+        {
+            targetValue_i = target;
+        }
         
         /**
          * Returns the result of this function.
@@ -76,7 +93,7 @@ namespace dec_brl {
             // Could also use this for consistency.
             //******************************************************************
             double y = std::exp(ly);
-            double x= ly - boost::math::digamma(y,policy_i);
+            double x= ly - boost::math::digamma(y,policy_i) - targetValue_i;
             double d = 1 - polygamma::trigamma(y)*y;
             return Tuple(x,d);
         }
@@ -128,12 +145,11 @@ namespace dec_brl {
         // no significantly change the shape of the gamma distribution, so might
         // as well limit the max to save us looking forever.
         //**********************************************************************
-        boost::uintmax_t& max_iter = 10; // max no. iterations to find solution
+        boost::uintmax_t max_iter = 10; // max no. iterations to find solution
         const int digits = 8; // no. required binary digits in solution mantissa
-        DeardenG<> GFunc; // function we want to find the root for
-                          // need this to return 0 for the point we are interested in, right?
-                          // so need to subtract target value.
-        return newton_raphson_iterate(GFunc, guess, MIN_LOG_DEARDEN_F, MAX_LOG_DEARDEN_F, digits, max_iter);
+        DeardenG<> GFunc(x); // function we want to find the root for
+        RealType ly = newton_raphson_iterate(GFunc, guess, MIN_LOG_DEARDEN_F, MAX_LOG_DEARDEN_F, digits, max_iter);
+        return std::exp(ly);
         
     } // deardenF
     
