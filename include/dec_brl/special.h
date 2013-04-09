@@ -106,7 +106,7 @@ namespace dec_brl {
      * on our application is not big, since the shape of the gamma distribution
      * is similar for all large alpha.
      */
-    const static double MAX_LOG_DEARDEN_F = 6.0;
+    const static double MAX_LOG_DEARDEN_F = 6.5;
     
     /**
      * Log of minimum value that may be returned by the deardenF function.
