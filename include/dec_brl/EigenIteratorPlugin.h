@@ -6,12 +6,14 @@
 #ifndef EIGEN_ITERATOR_PLUGIN_H
 #define EIGEN_ITERATOR_PLUGIN_H
 
-dec_brl::ConstEigenIterator<DenseBase<Derived> > begin()
+typedef Scalar value_type;
+
+dec_brl::ConstEigenIterator<DenseBase<Derived> > begin() const
 {
     return dec_brl::ConstEigenIterator<DenseBase<Derived> >(0,*this);
 }
 
-dec_brl::ConstEigenIterator<DenseBase<Derived> > end()
+dec_brl::ConstEigenIterator<DenseBase<Derived> > end() const
 {
     return dec_brl::ConstEigenIterator<DenseBase<Derived> >(size(),*this);
 }

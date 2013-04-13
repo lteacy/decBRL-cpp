@@ -7,6 +7,7 @@
 #define DEC_BRL_TRANS_BELIEF_H
 
 #include <boost/random/gamma_distribution.hpp>
+#include  <boost/random/uniform_01.hpp>
 #include "EigenWithPlugin.h"
 #include <vector>
 #include "common.h"
@@ -20,6 +21,17 @@ namespace dec_brl {
      * Dirichlet conjugate priors.
      */
     class TransBelief;
+    
+    /**
+     * Represents a transition probability matrix randomly generated from a
+     * TransBelief parameter distribution. Objects of this class are only valid
+     * while the parent object exists. If the parent object is destructed,
+     * then the behaviour of a TransProb object is undefined. This behaviour
+     * allows the implmentation to be simple, efficient, and sufficient for
+     * our purposes. Although making the class work beyond the lifetime of
+     * the parent shouldn't be too difficult.
+     */
+    class SampledTransProb;
     
     /**
      * Produce text representation of beliefs for diagnostics.
@@ -74,6 +86,11 @@ namespace dec_brl {
         Eigen::VectorXi domainValueCache_i;
         
     public:
+        
+        /**
+         * Let Sampled CPTs shared their parents domain.
+         */
+        friend SampledTransProb;
         
         // Make new operator work with eigen3 library
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -319,7 +336,7 @@ namespace dec_brl {
         (
          RandType& random,
          Eigen::DenseBase<Derived>& cpt
-        )
+        ) const
         {
             using namespace boost::random;
             //******************************************************************
@@ -355,6 +372,147 @@ namespace dec_brl {
      * Default prior value for alpha hyperparameters.
      */
     const double TransBelief::DEFAULT_ALPHA = 1;
+    
+    /**
+     * Represents a transition probability matrix randomly generated from a
+     * TransBelief parameter distribution. Objects of this class are only valid
+     * while the parent object exists. If the parent object is destructed,
+     * then the behaviour of a TransProb object is undefined. This behaviour
+     * allows the implmentation to be simple, efficient, and sufficient for
+     * our purposes. Although making the class work beyond the lifetime of
+     * the parent shouldn't be too difficult.
+     */
+    class SampledTransProb
+    {
+    private:
+        
+        /**
+         * The transition belief object that created this object.
+         */
+        const TransBelief& parent_i;
+        
+        /**
+         * The conditional probability CPT that defines this distribution.
+         */
+        Eigen::MatrixXd cpt_i;
+        
+        /**
+         * Statically allocated vector for storing conditional variable values.
+         * Putting this here avoids unnecessary temporary.
+         * @see TransBelief::observeByMap
+         */
+        Eigen::VectorXi condCache_i;
+        
+        /**
+         * Statically allocated vector for storing conditional variable values.
+         * Putting this here avoids unnecessary temporary.
+         * @see TransBelief::observeByMap
+         */
+        Eigen::VectorXi domainCache_i;
+        
+    public:
+        
+        // Make new operator work with eigen3 library
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+        
+        /**
+         * Constructor
+         * @tparam Rand Type of boost random generator used for sampling.
+         * @param parent this object's parent parameter distribution.
+         * @param generator random generator used for sampling.
+         */
+        template<class Rand>
+        SampledTransProb(const TransBelief& parent, Rand& generator)
+        : parent_i(parent), cpt_i(), condCache_i(parent.condVars_i.size()),
+        domainCache_i(parent.domainVars_i.size())
+        {
+            drawNewCPT(generator);
+        }
+        
+        /**
+         * Accessor to CPT.
+         */
+        const Eigen::MatrixXd& getCPT() const
+        {
+            return cpt_i;
+        }
+        
+        /**
+         * Resample this CPT from the parent distribution.
+         * @tparam Rand Type of boost random generator used for sampling.
+         * @param generator random generator used for sampling.
+         */
+        template<class Rand> void drawNewCPT(Rand& generator)
+        {
+            parent_i.sample(generator,cpt_i);
+            
+        } // function drawNewCPT
+        
+        /**
+         * Samples next states, given previous states and actions.
+         * @param[in] generator random generator used for sampling.
+         * @param[in] condVars map of condition variables (states and actions)
+         * to values.
+         * @param[out] domainVars map in which to store next state values.
+         */
+        template<class Rand, class CondMap, class DomainMap>
+        void drawNextStates
+        (
+         Rand& generator,
+         CondMap& condVars,
+         DomainMap& domainVars
+        )
+        {
+            //******************************************************************
+            //  Get linear index for conditional distribution
+            //******************************************************************
+            for(int k=0; k<parent_i.condVars_i.size(); ++k)
+            {
+                int var = parent_i.condVars_i(k);
+                int val = condVars[var];
+                condCache_i(k) = val;
+            }
+            
+            int condInd = maxsum::sub2ind(parent_i.condSize_i.begin(),
+                                          parent_i.condSize_i.end(),
+                                          condCache_i.begin(),
+                                          condCache_i.end());
+            
+            //******************************************************************
+            //  Draw a number between 0 and 1
+            //******************************************************************
+            boost::random::uniform_01<> unirnd;
+            double draw = unirnd(generator);
+            
+            //******************************************************************
+            //  follow the cumulative probability function up to the draw
+            //******************************************************************
+            int domainInd = 0;
+            double cdf = 0.0;
+            for(; domainInd<parent_i.domainSize(); ++domainInd)
+            {
+                cdf += cpt_i(domainInd,condInd);
+                if(cdf>=draw)
+                {
+                    break;
+                }
+            }
+            
+            //******************************************************************
+            //  get the corresponding domain variables values 
+            //******************************************************************
+            maxsum::ind2sub(parent_i.domainSize_i, domainInd, domainCache_i);
+            for(int k=0; k<domainCache_i.size(); ++k)
+            {
+                int var = parent_i.domainVars_i[k];
+                int val = domainCache_i[k];
+                domainVars[var] = val;
+            }
+            
+            
+        } // function drawNextStates
+        
+    }; // class TransProb
     
 } // namespace dec_brl
 

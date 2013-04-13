@@ -11,6 +11,142 @@
 #include <cmath>
 
 /**
+ * Private module namespace.
+ */
+namespace {
+    
+    /**
+     * Function used for testing drawn Transition probability matrices.
+     */
+    int testSampledCPT
+    (
+     dec_brl::TransBelief& paramDist,
+     dec_brl::SampledTransProb& cpt
+    )
+    {
+        //**********************************************************************
+        //  Initialise previous and next states. Note that we're assuming the
+        //  test variables and domain sizes as in the main function:
+        //  condition variables: 1,2,3 with sizes 2,3,4.
+        //  domain variables: 1,2 with sizes 2,3.
+        //  Thus, when sampling, we expect 1 and 2 to change, but 3 to stay the
+        //  same.
+        //**********************************************************************
+        Eigen::Vector4i prevStates, nxtStates, sizes; // first element not used
+        prevStates << 0,0,0,0;
+        nxtStates << 0,0,0,0;
+        sizes << 1,2,3,4;
+        
+        //**********************************************************************
+        //  Set up random number generator used for sampling
+        //**********************************************************************
+        boost::mt19937 randGenerator; // generates uniform random numbers
+        
+        //**********************************************************************
+        //  Check that we can change the CPT by resampling
+        //**********************************************************************
+        Eigen::ArrayXXd oldCPT = cpt.getCPT();
+        Eigen::ArrayXXd newCPT = cpt.getCPT();
+        
+        if(!oldCPT.isApprox(newCPT))
+        {
+            std::cout << "inconsistent CPT before redraw" << std::endl;
+            return EXIT_FAILURE;
+        }
+        
+        cpt.drawNewCPT(randGenerator);
+        newCPT = cpt.getCPT();
+        
+        if(oldCPT.isApprox(newCPT))
+        {
+            std::cout << "No change in CPT after redraw" << std::endl;
+            return EXIT_FAILURE;
+        }
+        
+        //**********************************************************************
+        //  Set up matrix to hold counts for each possible state value
+        //**********************************************************************
+        Eigen::ArrayXXd counts;
+        counts.setConstant(newCPT.rows(),newCPT.cols(),0);
+        
+        //**********************************************************************
+        //  Draw a lot of samples
+        //**********************************************************************
+        const int N_SAMPLES = 100000;
+        for(int k=0; k<N_SAMPLES; ++k)
+        {
+            //******************************************************************
+            //  Draw new states
+            //******************************************************************
+            prevStates.swap(nxtStates); // last new states become prev states
+            cpt.drawNextStates(randGenerator, prevStates, nxtStates);
+            
+            //******************************************************************
+            //  Check that cond variable that is not in domain stays the same
+            //******************************************************************
+            if(nxtStates[3]!=0)
+            {
+                std::cout << "detected change in non-domain variable: "
+                << std::endl;
+                std::cout << "prev: " << prevStates << std::endl;
+                std::cout << "nxt: " << nxtStates << std::endl;
+                return EXIT_FAILURE;
+            }
+            
+            //******************************************************************
+            //  Check that the maximum values for each variable is not exceeded
+            //******************************************************************
+            bool tooLow = (nxtStates.array()<0).any();
+            bool tooHigh = (nxtStates.array()>=sizes.array()).any();
+            if( tooLow || tooHigh )
+            {
+                std::cout << "sampled state out of bounds: "
+                << nxtStates << std::endl;
+                return EXIT_FAILURE;
+            }
+            
+            //******************************************************************
+            //  Update count of observed values
+            //******************************************************************
+            int condInd = maxsum::sub2ind(sizes.begin(), sizes.end(),
+                                          prevStates.begin(), prevStates.end());
+            
+            int domainInd = maxsum::sub2ind(sizes.begin(), sizes.end()-1,
+                                            nxtStates.begin(),
+                                            nxtStates.end()-1);
+            
+            counts(domainInd,condInd) += 1;
+            
+        } // for loop
+        
+        //**********************************************************************
+        //  Check count against expected result
+        //**********************************************************************
+        Eigen::ArrayXXd expCounts = newCPT.rowwise() * counts.colwise().sum();
+        std::cout << "Expected number of samples:" << std::endl;
+        std::cout << expCounts << std::endl;
+        std::cout << "Actual number of samples:" << std::endl;
+        std::cout << counts << std::endl;
+        std::cout << "diff: " << std::endl;
+        std::cout << (expCounts-counts).array().abs() << std::endl;
+        
+        if(!expCounts.matrix().isApprox(counts.matrix()))
+        {
+            std::cout << "COUNTS NOT EQUAL WITHIN PRECISION" << std::endl;
+            return EXIT_FAILURE;
+        }
+        else
+        {
+            std::cout << "COUNTS OK" << std::endl;
+            return EXIT_SUCCESS;
+        }
+        
+        
+    } // testSampledCPT
+    
+} // module namespace
+
+/**
  * Main function.
  */
 int main()
@@ -305,6 +441,15 @@ int main()
     }
     std::cout << "Sample mean within acceptable precision: ";
     std::cout << ACCEPT_PRECISION << std::endl;
+    
+    //**************************************************************************
+    //  Try drawing from a sampled CPT
+    //**************************************************************************
+    SampledTransProb transProb(beliefs,randGenerator);
+    if(EXIT_SUCCESS!=testSampledCPT(beliefs, transProb))
+    {
+        return EXIT_FAILURE;
+    }
     
     //**************************************************************************
     // If we get this far, everything passed.
