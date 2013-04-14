@@ -10,3 +10,10 @@ bin/
 doc/
 lib/
 *.swp
+.DS_Store
+CMakeScripts
+*.xcodeproj
+proto_gen
+proto_java
+proto_matlab
+proto_python
