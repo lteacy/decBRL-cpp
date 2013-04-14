@@ -414,7 +414,7 @@ namespace dec_brl {
 namespace dist {
 
    /**
-    * Used to generator random numbers in range [0,1].
+    * Used to generate random numbers in range [0,1].
     */
    template<class RealType, class Policy> boost::uniform_real<RealType>
       NonCentralT_Tmpl<RealType,Policy>::unirand_s(0,1); 

@@ -12,6 +12,7 @@
 #include <boost/random/variate_generator.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/mersenne_twister.hpp>
+#include "DiscreteFunction.h"
 
 // private module namespace
 namespace
@@ -30,6 +31,14 @@ const int MC_SAMPLE_SIZE_M = 2500;
  * 1.96 is the 0.95 quantile for the standard normal distribution.
  */
 const double STANDARD_ERROR_COEFFICIENT = 4.0 / 50.0;
+
+/**
+ * Check that two doubles are equal within margin of error.
+ */
+bool equalWithinTol_m(double v1, double v2, double tol=0.0001)
+{
+   return tol > (std::abs(v1-v2)/std::min(v1,v2));
+}
 
 /**
  * For a given NormalGamma parameter distribtuion, returns true iff
@@ -81,6 +90,107 @@ bool consistentVPI_m(const NormalGamma& paramDist, double vpi1, double vpi2)
    return true;
 
 } // function consistentVPI_m
+   
+/**
+ * Test that VPI is consistent when calculated in different ways for a 
+ * value function represented by a maxsum::DiscreteFunction object.
+ */
+bool testVecVPI()
+{
+   //***************************************************************************
+   // Register some variables with the maxsum library for testing
+   //***************************************************************************
+   maxsum::registerVariable(1,2);
+   maxsum::registerVariable(2,2);
+   
+   //***************************************************************************
+   // Create a NormalGamma distribution for a full value function
+   //***************************************************************************
+   maxsum::DiscreteFunction zeroFunc;
+   zeroFunc.expand(1);
+   zeroFunc.expand(2);
+   
+   dec_brl::dist::NormalGamma_Tmpl<maxsum::DiscreteFunction> dist(zeroFunc,zeroFunc,
+                                                         zeroFunc,zeroFunc);
+   dist.alpha(0) = 1;
+   dist.alpha(1) = 2;
+   dist.alpha(2) = 3;
+   dist.alpha(3) = 4;
+   
+   dist.beta(0) = 10;
+   dist.beta(1) = 25;
+   dist.beta(2) = 30;
+   dist.beta(3) = 100;
+   
+   dist.lambda(0) = 1;
+   dist.lambda(1) = 1;
+   dist.lambda(2) = 4;
+   dist.lambda(3) = 4;
+   
+   dist.m(0) = -2;
+   dist.m(1) = 100;
+   dist.m(2) = 10;
+   dist.m(3) = 30;
+   
+   //***************************************************************************
+   // Calculate VPI the vectorised way
+   //***************************************************************************
+   maxsum::DiscreteFunction vecResult;
+   dec_brl::exactVPI(dist,vecResult);
+   
+   //***************************************************************************
+   // Ensure result as correct domain size
+   //***************************************************************************
+   if(vecResult.domainSize()!=dist.m.domainSize())
+   {
+      std::cout << "Wrong size for VPI DiscreteFunction result." << std::endl;
+      return false;
+   }
+   
+   //***************************************************************************
+   // Find first and second best values required for scalar results
+   //***************************************************************************
+   maxsum::ValIndex firstBestInd = dist.m.argmax();
+   maxsum::ValIndex secondBestInd = dist.m.argmax2(firstBestInd);
+   maxsum::ValType firstBestVal = dist.m(firstBestInd);
+   maxsum::ValType secondBestVal = dist.m(secondBestInd);
+   
+   //***************************************************************************
+   // Check for consistency against scalar results
+   //***************************************************************************
+   for(int k=0; k<dist.m.domainSize(); ++k)
+   {
+      //************************************************************************
+      // Get distribution for just the current value
+      //************************************************************************
+      NormalGamma_Tmpl<maxsum::ValType> scalarDist(dist.alpha(k),
+                                                   dist.beta(k),
+                                                   dist.lambda(k),
+                                                   dist.m(k));
+      
+      //************************************************************************
+      // Calculate scalar VPI
+      //************************************************************************
+      bool isBestAction = (k==firstBestInd);
+      maxsum::ValType scalarVPI = dec_brl::exactVPI(isBestAction,firstBestVal,
+                                           secondBestVal,scalarDist);
+      
+      //************************************************************************
+      // Check for consistency
+      //************************************************************************
+      if(!equalWithinTol_m(scalarVPI,vecResult(k)))
+      {
+         return false;
+      }
+      
+   } // for
+   
+   //***************************************************************************
+   // Test passed if we get this far
+   //***************************************************************************
+   return true;
+   
+} // testVecVPI
 
 /**
  * Test VPI for given parameter distribution
@@ -206,7 +316,16 @@ int main()
       boost::normal_distribution<> normal; // normal distribution
       boost::variate_generator<boost::mt19937&,boost::normal_distribution<> >
          normrnd(rnd,normal); // generates normal distributed random variates.
-   
+      
+      //************************************************************************
+      //  Test DiscreteFunction version of VPI to make sure it is consistent
+      //************************************************************************
+      if(!testVecVPI())
+      {
+         std::cout << "VPI inconsistent for DiscreteFunction" << std::endl;
+         return EXIT_FAILURE;
+      }
+      
       //************************************************************************
       // Construct a normal-gamma distribution with default hyperparameters.
       // Has to start with enough observations to make marginal variance
@@ -290,6 +409,7 @@ int main()
          std::cout << "Non-Best VPI never changed after any observations.\n";
          return EXIT_FAILURE;
       }
+
    }
    catch(std::exception& e)
    {

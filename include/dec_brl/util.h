@@ -15,6 +15,11 @@
 namespace dec_brl
 {
    /**
+    * Default discount factor for infinite horizon MDPs.
+    */
+   const double DEFAULT_GAMMA = 0.95;
+
+   /**
     * Provides a cross-platform representation of infinity.
     * If this platform has infinity defined, we use it, otherwise we use the
     * maximum value for a given type. This decision is made at compile time.

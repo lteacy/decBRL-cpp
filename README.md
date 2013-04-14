@@ -44,6 +44,16 @@ This library is not complete yet!! The initial phase of development is still und
 
 License
 =======
+With the exception of the files contained under the include/polygamma and src/polygamma subdirectories, all files within this project are distributed under the BSD License stated below. The files contained within the polygamma subdirectories are due to John Burkardt, and are distributed under the LGPL license. A copy of this license is stated in the README files contained in each of the polygamma subdirectories. All other code within the library may be used without adhering to the terms of the LGPL license, provided the LGPL license code is replaced with some other implementation of the digamma and trigamma functions. 
+
+In the text below, all references to 'this software' refers to the files contained within this project, excluding only the LGPL licensed code contained under the polygamma subdirectories.
+
+See also:
+* John Burkardt's website http://people.sc.fsu.edu/~jburkardt/
+* The LGPL license https://github.com/lteacy/decBRL-cpp/blob/learning/src/polygamma/README.txt
+
+BSD License
+-----------
 Copyright © 2012 Luke Teacy. All Rights Reserved.
 
 Redistribution and use of this software in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
