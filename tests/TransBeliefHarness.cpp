@@ -4,6 +4,7 @@
  * @author Luke Teacy
  */
 
+#include <dec_brl/TransProb.h>
 #include <dec_brl/TransBelief.h>
 #include "register.h"
 #include <iostream>
@@ -16,13 +17,9 @@
 namespace {
     
     /**
-     * Function used for testing drawn Transition probability matrices.
+     * Function used for testing transition probability matrices.
      */
-    int testSampledCPT
-    (
-     dec_brl::TransBelief& paramDist,
-     dec_brl::SampledTransProb& cpt
-    )
+    template<class CPT> int testCPT(CPT& cpt)
     {
         //**********************************************************************
         //  Initialise previous and next states. Note that we're assuming the
@@ -43,31 +40,10 @@ namespace {
         boost::mt19937 randGenerator; // generates uniform random numbers
         
         //**********************************************************************
-        //  Check that we can change the CPT by resampling
-        //**********************************************************************
-        Eigen::ArrayXXd oldCPT = cpt.getCPT();
-        Eigen::ArrayXXd newCPT = cpt.getCPT();
-        
-        if(!oldCPT.isApprox(newCPT))
-        {
-            std::cout << "inconsistent CPT before redraw" << std::endl;
-            return EXIT_FAILURE;
-        }
-        
-        cpt.drawNewCPT(randGenerator);
-        newCPT = cpt.getCPT();
-        
-        if(oldCPT.isApprox(newCPT))
-        {
-            std::cout << "No change in CPT after redraw" << std::endl;
-            return EXIT_FAILURE;
-        }
-        
-        //**********************************************************************
         //  Set up matrix to hold counts for each possible state value
         //**********************************************************************
         Eigen::ArrayXXd counts;
-        counts.setConstant(newCPT.rows(),newCPT.cols(),0);
+        counts.setConstant(cpt.getCPT().rows(),cpt.getCPT().cols(),0);
         
         //**********************************************************************
         //  Draw a lot of samples
@@ -122,15 +98,21 @@ namespace {
         //**********************************************************************
         //  Check count against expected result
         //**********************************************************************
-        Eigen::ArrayXXd expCounts = newCPT.rowwise() * counts.colwise().sum();
+        Eigen::ArrayXXd expCounts = cpt.getCPT().array().rowwise()
+                                    * counts.colwise().sum();
+        
+        Eigen::ArrayXXd diff = (expCounts-counts).abs();
+        
         std::cout << "Expected number of samples:" << std::endl;
         std::cout << expCounts << std::endl;
         std::cout << "Actual number of samples:" << std::endl;
         std::cout << counts << std::endl;
         std::cout << "diff: " << std::endl;
-        std::cout << (expCounts-counts).array().abs() << std::endl;
+        std::cout << diff << std::endl;
         
-        if(!expCounts.matrix().isApprox(counts.matrix()))
+        // threshold is an arbitary number - should really be based on some sort
+        // of distribution theory
+        if( (diff>70.0).any() )
         {
             std::cout << "COUNTS NOT EQUAL WITHIN PRECISION" << std::endl;
             return EXIT_FAILURE;
@@ -141,6 +123,43 @@ namespace {
             return EXIT_SUCCESS;
         }
         
+    } // function testCPT
+    
+    /**
+     * Function used for testing drawn Transition probability matrices.
+     */
+    int testSampledCPT(dec_brl::SampledTransProb& cpt)
+    {
+        //**********************************************************************
+        //  Set up random number generator used for sampling
+        //**********************************************************************
+        boost::mt19937 randGenerator; // generates uniform random numbers
+        
+        //**********************************************************************
+        //  Check that we can change the CPT by resampling
+        //**********************************************************************
+        Eigen::ArrayXXd oldCPT = cpt.getCPT();
+        Eigen::ArrayXXd newCPT = cpt.getCPT();
+        
+        if(!oldCPT.isApprox(newCPT))
+        {
+            std::cout << "inconsistent CPT before redraw" << std::endl;
+            return EXIT_FAILURE;
+        }
+        
+        cpt.drawNewCPT(randGenerator);
+        newCPT = cpt.getCPT();
+        
+        if(oldCPT.isApprox(newCPT))
+        {
+            std::cout << "No change in CPT after redraw" << std::endl;
+            return EXIT_FAILURE;
+        }
+        
+        //**********************************************************************
+        //  Let testCPT do the rest of the hard work
+        //**********************************************************************
+        return testCPT(cpt);
         
     } // testSampledCPT
     
@@ -445,8 +464,20 @@ int main()
     //**************************************************************************
     //  Try drawing from a sampled CPT
     //**************************************************************************
+    std::cout << "Testing sampled CPT" << std::endl;
     SampledTransProb transProb(beliefs,randGenerator);
-    if(EXIT_SUCCESS!=testSampledCPT(beliefs, transProb))
+    if(EXIT_SUCCESS!=testSampledCPT(transProb))
+    {
+        return EXIT_FAILURE;
+    }
+    
+    //**************************************************************************
+    //  Try cloning as a standalone CPT
+    //**************************************************************************
+    std::cout << "Testing standalone CPT" << std::endl;
+    TransProb transProb2(vars,vars.head(2));
+    transProb2.setCPT(transProb.getCPT());
+    if(EXIT_SUCCESS!=testCPT(transProb2))
     {
         return EXIT_FAILURE;
     }
