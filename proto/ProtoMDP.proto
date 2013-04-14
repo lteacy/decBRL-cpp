@@ -31,7 +31,7 @@ message FactoredMDP
    message Reward
    {
       required uint32 id = 1;  // unique identifier for this reward factor
-      repeated Variable domain = 2; // variables this function depends on
+      repeated uint32 domain = 2; // variables this function depends on
       repeated double values = 3;   // values whole domain (see above)
       repeated double std_dev = 4;  // standard deviations (if any)
    }
@@ -50,8 +50,8 @@ message FactoredMDP
    // its previous value. 
    message TransProb
    {
-      repeated Variable conditions = 1; // condition variables 
-      repeated Variable domain = 2;     // domain variables
+      repeated uint32 conditions = 1; // condition variables 
+      repeated uint32 domain = 2;     // domain variables
       repeated double values = 3;       // matrix values in range [0,1] stored
                                         // in column-major (domain-major) order
                                         // (as in matlab).
