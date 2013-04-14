@@ -1,0 +1,67 @@
+package dec_brl.proto;
+
+message FactoredMDP
+{
+   optional string name = 1;        // Short name for this MDP
+   optional string description = 2; // Longer description of this MDP
+   optional double gamma = 3;       // Discount factor for future rewards
+   
+   // message type describing maxsum library variables
+   // Right now, we make the limiting assumption that these are discrete
+   // variables identified by integers, and taking integers as values
+   message Variable
+   {
+      required uint32 id = 1;   // unique id for this variable
+      required uint32 size = 2; // variable can have values in range [0,size-1]
+   }
+
+   repeated Variable states = 4; // state variables in this MDP
+   repeated Variable actions = 5; // action variables in this MDP
+
+   // Type for factored Reward functions - assumed to be 
+   // either deterministic given input variables, or normally distributed.
+   // Values are specified for cartesian product of input variables, ordered
+   // by variable id. For example, if a function depends on variables with ids
+   // 8 and 9, and corresponding domain sizes 5 and 6, then (5x6) values should
+   // be specified in total. So, for example, the Reward(8=1,9=2) is stored
+   // as the (5*2+1)th value in the values array. See maxsum::DiscreteFunction
+   // C++ class for details. This indexing regime is defined in the same way
+   // as the sub2ind and ind2sub functions in matlab, except that indexes start
+   // from 0, not 1.
+   message Reward
+   {
+      required uint32 id = 1;  // unique identifier for this reward factor
+      repeated Variable domain = 2; // variables this function depends on
+      repeated double values = 3;   // values whole domain (see above)
+      repeated double std_dev = 4;  // standard deviations (if any)
+   }
+
+   repeated Reward rewards = 6;  // all factored reward functions in this MDP
+
+   // Type for factored transition functions in this MDP
+   // This is interpreted as a DomainSize x CondSize transition probability
+   // matrix, where DomainSize is the combined domain size of the output domain
+   // variables, and CondSize is the combined size of the condition variables.
+   // ie. The i,j entry is Pr(Domain=i|Conditions=j), where i and j are the
+   // linear indices derived from the ordered variables indexes as above.
+   // See maxsum::DiscreteFunction C++ class and the functions maxsum::sub2ind
+   // and maxsum::ind2sub. If a variable occurs as both a condition and domain
+   // variable, then this just means that a variable's next value depends on
+   // its previous value. 
+   message TransProb
+   {
+      repeated Variable conditions = 1; // condition variables 
+      repeated Variable domain = 2;     // domain variables
+      repeated double values = 3;       // matrix values in range [0,1] stored
+                                        // in column-major (domain-major) order
+                                        // (as in matlab).
+   }
+
+   repeated TransProb transitions = 7;  // Factored Transition Probability
+                                        // Matrices for this MDP
+                                        // Each state variable should appear in
+                                        // a TransProb.domain list exactly once.
+
+   // The following field ids are reserved for third party extensions
+   extensions 100 to 199;
+}

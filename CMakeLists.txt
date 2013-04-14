@@ -67,6 +67,24 @@ LINK_DIRECTORIES(${LIBRARY_OUTPUT_PATH} ${MAXSUM_ROOT}/lib)
 #ADD_CUSTOM_TARGET(uninstall
 #  "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/UninstallScript.cmake")
 
+############################################
+# Build protocol buffers and simulator     #
+############################################
+INCLUDE(FindProtocolBuffers.cmake)
+IF(PROTOBUF_FOUND)
+   FILE(GLOB PROTO_FILES proto/*.proto)
+   WRAP_PROTO(PROTO_GENERATED ${PROTO_FILES})
+   INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/proto_gen ${PROTOBUF_INCLUDE_DIRECTORIES})
+   MESSAGE("Proto generated: " ${PROTO_GENERATED})
+   MESSAGE("proto include: ${PROTOBUF_INCLUDE_DIRECTORIES}")
+   ADD_LIBRARY(DecBRLProto SHARED ${PROTO_GENERATED})
+   TARGET_LINK_LIBRARIES (DecBRLProto ${PROTOBUF_LIBRARY})
+   ADD_EXECUTABLE(decBRLSimulator src/decBRLSimulator.cpp)
+   TARGET_LINK_LIBRARIES(decBRLSimulator MaxSum DecBRL Polygamma DecBRLProto)
+ELSE(PROTOBUF_FOUND)
+   MESSAGE("Protocal Buffers not found - cannot build simulator!")
+ENDIF(PROTOBUF_FOUND)
+
 #############################
 # compile project library   #
 #############################
