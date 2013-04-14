@@ -158,7 +158,7 @@ namespace dec_brl {
          Rand& generator,
          CondMap& condVars,
          DomainMap& domainVars
-         )
+        )
         {
             //******************************************************************
             //  Get linear index for conditional distribution
@@ -205,7 +205,6 @@ namespace dec_brl {
                 int val = domainCache_i[k];
                 domainVars[var] = val;
             }
-            
             
         } // function drawNextStates
         
