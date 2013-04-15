@@ -8,14 +8,16 @@
 
 typedef Scalar value_type;
 
-dec_brl::ConstEigenIterator<DenseBase<Derived> > begin() const
+typedef dec_brl::ConstEigenIterator<DenseBase<Derived> > const_iterator;
+
+const_iterator begin() const
 {
-    return dec_brl::ConstEigenIterator<DenseBase<Derived> >(0,*this);
+    return const_iterator(0,*this);
 }
 
-dec_brl::ConstEigenIterator<DenseBase<Derived> > end() const
+const_iterator end() const
 {
-    return dec_brl::ConstEigenIterator<DenseBase<Derived> >(size(),*this);
+    return const_iterator(size(),*this);
 }
 
 #endif // EIGEN_ITERATOR_PLUGIN_H

@@ -6,8 +6,11 @@
 #ifndef DEC_BRL_FACTORED_MDP_H
 #define DEC_BRL_FACTORED_MDP_H
 
+#include <iostream>
 #include <vector>
 #include <boost/container/flat_map.hpp>
+#include <boost/random/normal_distribution.hpp>
+#include "util.h"
 #include "common.h"
 #include "register.h"
 #include "DiscreteFunction.h"
@@ -19,6 +22,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <algorithm>
 
 namespace dec_brl
 {
@@ -29,7 +33,7 @@ namespace dec_brl
      */
     class FactoredMDP
     {
-    private:
+    public:
         
         /**
          * Type used to store a Factored reward function together with any
@@ -42,16 +46,16 @@ namespace dec_brl
             maxsum::DiscreteFunction reward;
             maxsum::DiscreteFunction std_dev;
         };
-                
+        
         /**
-         * Type used to store joint states.
+         * Type used to store joint states and/or actions.
          * (boost flat map is apparently more efficient of all operators,
          *  apart from [worst-case] insertion). Although we modify values
          * frequently, we don't insert new variables after initial construction,
          * so this should do fine.
          */
         typedef boost::container::flat_map<maxsum::VarID,
-                                           maxsum::ValIndex> StateMap;
+                                           maxsum::ValIndex> VarMap;
         
         /**
          * Type used to store observed factored rewards.
@@ -69,6 +73,13 @@ namespace dec_brl
          * Type used to store transition probabilties.
          */
         typedef std::vector<TransProb> FactoredCPT;
+        
+    private:
+        
+        /**
+         * Necessary for printing diagnostics.
+         */
+        friend std::ostream& operator<<(std::ostream&, const FactoredMDP&);
         
         /**
          * Protocol buffer representation.
@@ -95,17 +106,17 @@ namespace dec_brl
          * The previous joint state and actions observed for this MDP.
          * Should include prevState_i as a subset.
          */
-        StateMap prevVars_i;
+        VarMap prevVars_i;
         
         /**
          * The previous joint state of this MDP.
          */
-        StateMap prevState_i;
+        VarMap prevState_i;
         
         /**
          * The current joint state of this MDP.
          */
-        StateMap curState_i;
+        VarMap curState_i;
         
         /**
          * The last rewards obtained from this MDP.
@@ -292,7 +303,60 @@ namespace dec_brl
             curState_i.shrink_to_fit();
             lastRewards_i.shrink_to_fit();
             
+            //******************************************************************
+            //  Validate transition probabilities to make sure each state
+            //  occurs in a CPT domain exactly once.
+            //******************************************************************
+            validateCPT();
+            
         } // initState
+        
+        /**
+         * Ensure that each state occurs in the CPT domain exactly once.
+         * i.e. exactly one factored transition matrix is responsible for
+         * generating each state
+         */
+        void validateCPT()
+        {
+            //******************************************************************
+            // Create a map to count the occurences of each state in CPT domain
+            //******************************************************************
+            VarMap count = curState_i;
+            for(VarMap::iterator it=count.begin(); it!=count.end(); ++it)
+            {
+                it->second = 0; // init all counts to zero
+            }
+            
+            //******************************************************************
+            //  Count the occurences of each state variable in the CPT domain
+            //******************************************************************
+            for(FactoredCPT::const_iterator cptIt=transProbs_i.begin();
+                cptIt!=transProbs_i.end(); ++cptIt)
+            {
+                for(TransProb::ConstVarIterator domainIt=cptIt->domainBegin();
+                    domainIt!=cptIt->domainEnd(); ++domainIt)
+                {
+                    count[*domainIt] += 1;
+                }
+                
+            } // outer for loop
+            
+            //******************************************************************
+            //  Ensure each state occurred exactly once
+            //******************************************************************
+            for(VarMap::const_iterator it=count.begin(); it!=count.end(); ++it)
+            {
+                if(1!=it->second)
+                {
+                    std::stringstream buf;
+                    buf << "State " << it->first << " occurs in CPT domain ";
+                    buf << it->second << " times, but should occur exactly";
+                    buf << " once.";
+                    throw new ProtoException(buf.str());
+                }
+            }
+            
+        } // function validateCPT
         
     public:
         
@@ -318,6 +382,30 @@ namespace dec_brl
             //******************************************************************
             gamma_i = gamma;
             protoSpec_i.set_gamma(gamma);
+        }
+        
+        /**
+         * Accessor for previous variables.
+         */
+        const VarMap& getPrevVars()
+        {
+            return prevVars_i;
+        }
+        
+        /**
+         * Accessor for cur states.
+         */
+        const VarMap& getCurState()
+        {
+            return curState_i;
+        }
+        
+        /**
+         * Accessor for last observed rewards.
+         */
+        const RewardMap& getLastRewards()
+        {
+            return lastRewards_i;
         }
         
         /**
@@ -428,7 +516,100 @@ namespace dec_brl
             
         } // parseFromIStream
         
+        /**
+         * Update states and rewards by performing given actions.
+         * At the moment, this implementation requires actions to be stored
+         * in flat_map of the correct type. A more general implementation that
+         * accepts any type is possible, but would require a comparator type
+         * general enough to compare key-value pairs of non-identical type.
+         * @param generator random number generator used to generate next state
+         * @param map of action varable ids to their chosen values.
+         */
+        template<class Rand> void act
+        (
+         Rand& generator,
+         const VarMap& actions
+        )
+        {
+            //******************************************************************
+            //  Set previous states to current states
+            //******************************************************************
+            prevState_i.swap(curState_i);
+            
+            //******************************************************************
+            //  Update condition variables for transitions
+            //******************************************************************
+            std::merge(prevState_i.begin(), prevState_i.end(), actions.begin(), actions.end(), prevVars_i.begin());
+            
+            //******************************************************************
+            //  Apply transitions to generate current states
+            //
+            //  Notice here that we assume each state is updated by exactly
+            //  one member of transProbs_i. If this not the case, the last
+            //  update (if any) wins. This isn't a critical problem, if it
+            //  occurs, but it is messy and best avoided. 
+            //******************************************************************
+            for(FactoredCPT::iterator it=transProbs_i.begin();
+                it!=transProbs_i.end(); ++it)
+            {
+                it->drawNextStates(generator, prevVars_i, curState_i);
+            }
+            
+            //******************************************************************
+            //  Generate rewards
+            //  This implementation iterates through both the FactorMap and
+            //  the reward map at the same time, rather than trying to match
+            //  ids. This is more efficient - especially for flat_maps, but
+            //  assumes that both maps have exactly the same keys in the same
+            //  order. If not, the code will break.
+            //******************************************************************
+            boost::random::normal_distribution<> normrnd; // produces x~N(0,1)
+            FactorMap::const_iterator facIt = rewardFactors_i.begin();
+            RewardMap::iterator rewardIt = lastRewards_i.begin();
+            while(facIt!=rewardFactors_i.end() && rewardIt!=lastRewards_i.end())
+            {
+                //**************************************************************
+                //  Sanity check that ids match
+                //**************************************************************
+                assert(facIt->first==rewardIt->first);
+                
+                //**************************************************************
+                //  Set reward to its expected value in reward factor
+                //**************************************************************
+                rewardIt->second = facIt->second.reward(prevVars_i);
+                
+                //**************************************************************
+                //  Add Gaussian noise if reward standard deviation is non-zero.
+                //**************************************************************
+                const double stdDev = facIt->second.std_dev(prevVars_i);
+                if(stdDev>1e-10)
+                {
+                    rewardIt->second += stdDev * normrnd(generator);
+                }
+                
+                //**************************************************************
+                //  Update iterators to next factor
+                //**************************************************************
+                ++facIt;
+                ++rewardIt;
+                
+            } // while loop
+            
+        } // function act
+        
     }; // class FactoredMDP
+    
+    /**
+     * Prints MDP state for diagnostics.
+     */
+    std::ostream& operator<<(std::ostream& out, const FactoredMDP& mdp)
+    {
+        out << "{ prev_state: " << mdp.prevState_i;
+        out << " prev_var: " << mdp.prevVars_i;
+        out << " cur_state: " << mdp.curState_i;
+        out << " last_rewards: " << mdp.lastRewards_i << " }";
+        return out;
+    }
     
     
 } // dec_brl

@@ -7,6 +7,7 @@
  */
 #include <iostream>
 #include <string>
+#include <boost/random/mersenne_twister.hpp>
 #include "dec_brl/FactoredMDP.h"
 
 /**
@@ -51,6 +52,29 @@ int main(int argc, char* argv[])
         std::cout << "Usage: " << argv[0] << " inputFilename " << std::endl;
         return EXIT_FAILURE;
     }
+    
+    //**************************************************************************
+    //  Perform some actions
+    //**************************************************************************
+    boost::mt19937 randGenerator; // generates uniform random numbers
+    boost::container::flat_map<unsigned int, int> actions;
+    std::cout << "MDP=" << mdp << std::endl;
+    actions[3]=1;
+    actions[4]=1;
+    std::cout << "performing actions: " << actions << std::endl;
+    mdp.act(randGenerator, actions);
+    std::cout << "MDP=" << mdp << std::endl;
+    actions[3]=0;
+    actions[4]=2;
+    std::cout << "performing actions: " << actions << std::endl;
+    mdp.act(randGenerator, actions);
+    std::cout << "MDP=" << mdp << std::endl;
+    actions[3]=1;
+    actions[4]=0;
+    std::cout << "performing actions: " << actions << std::endl;
+    mdp.act(randGenerator, actions);
+    std::cout << "MDP=" << mdp << std::endl;
+    
     
     //**************************************************************************
     // Delete all global objects allocated by libprotobuf.

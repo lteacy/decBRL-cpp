@@ -110,6 +110,27 @@ namespace dec_brl {
         } // constructor
         
         /**
+         * Type of iterator for variable lists returned by this object.
+         */
+        typedef Eigen::VectorXi::const_iterator ConstVarIterator;
+        
+        /**
+         * Returns an iterator to the start of the list of domain variables.
+         */
+        ConstVarIterator domainBegin() const
+        {
+            return domainVars_i.begin();
+        }
+        
+        /**
+         * Returns an iterator to the start of the list of domain variables.
+         */
+        ConstVarIterator domainEnd() const
+        {
+            return domainVars_i.end();
+        }
+        
+        /**
          * Accessor to CPT.
          */
         const Eigen::MatrixXd& getCPT() const
