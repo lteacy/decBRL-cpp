@@ -1,0 +1,37 @@
+package dec_brl.proto;
+
+// Outcome of a single reinforcement learning timestep
+message Outcome
+{
+   optional int32 episode = 1;   // episode number
+   optional int32 timestep = 2;  // timestep number
+
+   // A state/action variable id along with its value
+   message Variable
+   {
+      required uint32 id = 1;    // unique id for this variable
+      required uint32 value = 2; // index of observed value
+   }
+
+   // Observed factored reward
+   message Reward
+   {
+      required uint32 id = 1;    // unique id for reward factor
+      required float  value = 2; // observed value
+   }
+
+   repeated Variable prevState = 3; // previous state values
+   repeated Variable curState  = 4; // current state values
+   repeated Variable action    = 5; // performed actions
+   repeated Reward   reward    = 6; // observed factored rewards
+
+   // Number of milliseconds for learner to update policy after observing outcome
+   optional uint32 UpdateTimeInMs = 7;
+
+   // Number of milliseconds for learn to decide which actions to take
+   optional uint32 ActTimeInMs = 8;
+
+   // The following field ids are reserved for third party extensions
+   extensions 100 to 199;
+}
+

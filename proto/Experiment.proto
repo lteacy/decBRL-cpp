@@ -1,0 +1,62 @@
+package dec_brl.proto;
+import "ProtoMDP.proto";
+
+message ExperimentSetup
+{
+   optional string name = 1;        // Short name for this Experiment
+   optional string description = 2; // Longer description of this Experiment
+
+   optional uint32 timesteps = 3 [default=1]; // number of timesteps to run
+   optional uint32 episodes = 4  [default=1]; // number of independent episodes to run
+
+   // Seeds for random number generator. If none are specified, the current
+   // time will be used. If one is specified it, the seed will be set once
+   // before execution. Alternatively, one seed can be specified for 
+   // each individual episode
+   repeated uint32 seed = 5;       
+
+   // type of algorithm
+   enum Algorithm
+   {
+      RANDOM = 0;       // Random policy that doesn't learn
+      EGREEDY_Q = 1;    // Factored e-greedy Q learner
+      BAYES_Q = 2;      // Factored Bayesian Q learner
+      MODEL_BAYES = 3;  // Factored model-based Bayesian RL learner.
+   }
+   optional Algorithm learner = 6;  // type of learner to use
+
+   // optional parameters for e-greedy algorithm
+   message EGreedyQParams
+   {
+      optional double epsilonQ = 1 [default=0.1]; // probability of exploration
+      optional double alphaQ   = 2 [default=0.1]; // weight place on new observations
+   }
+   optional EGreedyQParams params_EGreedyQ = 20;
+
+   // optional parameters for bayesian q learner
+   message BayesQParams
+   {
+      optional double alpha  = 1 [default=1];    // Normal-Gamma prior alpha
+      optional double beta   = 2 [default=1];    // Normal-Gamma prior beta
+      optional double lambda = 3 [default=1];    // Normal-Gamma prior lambda
+      optional double mu     = 4 [default=0];    // Normal-Gamma prior mu
+   }
+   optional BayesQParams params_BayesQ = 21;
+
+   // optional parameters for model-based Bayesian RL learner
+   message ModelBayesParams
+   {
+      optional double dAlpha = 1 [default=1];    // Default Dirichlet prior alpha
+      optional double nAlpha = 2 [default=1];    // Normal-Gamma prior alpha
+      optional double beta   = 3 [default=1];    // Normal-Gamma prior beta
+      optional double lambda = 4 [default=1];    // Normal-Gamma prior lambda
+      optional double mu     = 5 [default=0];    // Normal-Gamma prior mu
+   }
+   optional ModelBayesParams params_ModelBayes = 22;
+
+   // The FactoredMDP - the problem we need to solve!
+   optional FactoredMDP problem = 50;
+
+   // The following field ids are reserved for third party extensions
+   extensions 100 to 199;
+}
