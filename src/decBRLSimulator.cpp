@@ -89,14 +89,33 @@ namespace  {
         for(int timestep=0; timestep<nTimesteps; ++timestep)
         {
             //******************************************************************
-            //  Ask the learner to choose its next actions, and perform these
-            //  on MDP.
+            //  Ask the learner to choose its next actions and time how long
+            //  it takes to decide.
             //******************************************************************
             clock_t start = std::clock() / (CLOCKS_PER_SEC / 1000);
             learner.act(mdp.getCurState(),actions);
             clock_t end = std::clock() / (CLOCKS_PER_SEC / 1000);
             int time2act = end-start;
+            
+            //******************************************************************
+            //  Perform the chosen actions on the MDP
+            //******************************************************************
             mdp.act(random,actions);
+            
+            //******************************************************************
+            //  Let the learner observe the result and time how long it takes
+            //  to update the model
+            //******************************************************************
+            start = std::clock() / (CLOCKS_PER_SEC / 1000);
+            learner.observe(mdp.getPrevVars(),actions,mdp.getCurState(),
+                            mdp.getLastRewards());
+            end = std::clock() / (CLOCKS_PER_SEC / 1000);
+            int time2obs = end-start;
+            
+            //******************************************************************
+            //  Record result
+            //******************************************************************
+            recorder(mdp,episode,timestep,time2act,time2obs);
             
         } // timestep loop
 
@@ -278,6 +297,12 @@ int main(int argc, char* argv[])
     uint nTimesteps = setup.timesteps();
     uint nEpisodes = setup.episodes();
     
+    //**************************************************************************
+    // Initialise learner and run experiment. How we do this exactly, depends
+    // on the learner type.
+    //**************************************************************************
+    
+
     //**************************************************************************
     //  Perform some actions
     //**************************************************************************
