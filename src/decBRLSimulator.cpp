@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 #include <boost/random/mersenne_twister.hpp>
+#include <boost/container/flat_map.hpp>
 #include "dec_brl/FactoredMDP.h"
 #include "Experiment.pb.h"
 #include <ctime>
@@ -48,6 +49,58 @@ namespace  {
         } // operator()
         
     };
+    
+    /**
+     * Run single episode using a given policy and MDP.
+     * @param[in] mdp a Factored MDP - the problem to solve.
+     * @param[in] learner the reinforcement learner for choosing actions.
+     * @param[in] recorder object used for recording results
+     * @param[in] random random number generator for generating events
+     * @param[in] episode the sequence number of this episode
+     * @param[in] nTimesteps the number of timesteps in this episode.
+     */
+    template<class Learner, class DataRecorder, class Rand> void runEpisode
+    (
+     dec_brl::FactoredMDP& mdp,
+     Learner& learner,
+     DataRecorder& recorder,
+     Rand& random,
+     uint episode,
+     uint nTimesteps
+    )
+    {
+        using namespace dec_brl;
+        using namespace boost::container;
+        
+        //**********************************************************************
+        //  Initialise action map
+        //**********************************************************************
+        flat_map<maxsum::VarID, maxsum::ValIndex> actions;
+        int nActions = mdp.getNumOfActions();
+        actions.reserve(nActions);
+        for(int k=0; k<nActions; ++k)
+        {
+            actions[k] = 0;
+        }
+
+        //**********************************************************************
+        //  For each timestep
+        //**********************************************************************
+        for(int timestep=0; timestep<nTimesteps; ++timestep)
+        {
+            //******************************************************************
+            //  Ask the learner to choose its next actions, and perform these
+            //  on MDP.
+            //******************************************************************
+            clock_t start = std::clock() / (CLOCKS_PER_SEC / 1000);
+            learner.act(mdp.getCurState(),actions);
+            clock_t end = std::clock() / (CLOCKS_PER_SEC / 1000);
+            int time2act = end-start;
+            mdp.act(random,actions);
+            
+        } // timestep loop
+
+    } // function runEpisode
 
     /**
      * Run an experiment using a given policy and MDP.
@@ -92,6 +145,7 @@ namespace  {
         //  Inform the learner about the structure of the MDP
         //**********************************************************************
         std::cout << "Telling learner about problem structure..";
+        // TODO
         std::cout << "OK." << std::endl;
         
         //**********************************************************************
@@ -103,17 +157,22 @@ namespace  {
             //  Make a new fresh copy of the learner that has no member of
             //  previous episodes.
             //******************************************************************
+            std::cout << "Initialising Learner...";
             Learner freshLearner = learner;
+            std::cout << "OK." << std::endl;
             
             //******************************************************************
             //  Reinitialise the MDP state
             //******************************************************************
-            //mdp.initState(random);
+            std::cout << "Initialising MDP...";
+            mdp.initState(random);
+            std::cout << "OK." << std::endl;
             
             //******************************************************************
             //  Run this episode and record results
             //******************************************************************
-            // runEpisode(mdp,freshLearner,episode,nTimesteps,random);
+            std::cout << "Starting episode: " << k << std::endl;
+            runEpisode(mdp, freshLearner, recorder, random, k, nTimesteps);
             
             //******************************************************************
             //  If we have one random seed for each episode, then reset the

@@ -10,6 +10,7 @@
 #include <vector>
 #include <boost/container/flat_map.hpp>
 #include <boost/random/normal_distribution.hpp>
+#include <boost/random/uniform_smallint.hpp>
 #include "util.h"
 #include "common.h"
 #include "register.h"
@@ -23,6 +24,7 @@
 #include <sstream>
 #include <vector>
 #include <algorithm>
+#include <limits>
 
 namespace dec_brl
 {
@@ -74,6 +76,11 @@ namespace dec_brl
          */
         typedef std::vector<TransProb> FactoredCPT;
         
+        /**
+         * List of variable ids (states, actions or both).
+         */
+        typedef std::vector<maxsum::VarID> VarIDList;
+        
     private:
         
         /**
@@ -101,6 +108,16 @@ namespace dec_brl
          * Discount factor for future rewards.
          */
         double gamma_i;
+        
+        /**
+         * List of all action variables.
+         */
+        VarIDList actionIDs_i;
+        
+        /**
+         * List of all state variables.
+         */
+        VarIDList stateIDs_i;
         
         /**
          * The previous joint state and actions observed for this MDP.
@@ -254,64 +271,6 @@ namespace dec_brl
         } // function addTransition
         
         /**
-         * Called to initialise state and reward observation maps.
-         * Basically just allocates space and sets everything to zero.
-         */
-        void initState()
-        {
-            //******************************************************************
-            //  Initialise previous and current states
-            //******************************************************************
-            prevState_i.clear();
-            prevState_i.reserve(protoSpec_i.states_size());
-            for(int k=0; k<protoSpec_i.states_size(); ++k)
-            {
-                maxsum::VarID var = protoSpec_i.states(k).id();
-                prevState_i[var] = 0;
-            }
-            curState_i = prevState_i;
-            
-            //******************************************************************
-            //  Initialise previous variables (includes states and actions)
-            //******************************************************************
-            int noVars = curState_i.size() + protoSpec_i.actions_size();
-            prevVars_i = prevState_i;
-            prevVars_i.reserve(noVars);
-            for(int k=0; k<protoSpec_i.actions_size(); ++k)
-            {
-                maxsum::VarID var = protoSpec_i.actions(k).id();
-                prevVars_i[var] = 0;
-            }
-            
-            //******************************************************************
-            //  Initialise observe rewards
-            //******************************************************************
-            lastRewards_i.clear();
-            lastRewards_i.reserve(protoSpec_i.rewards_size());
-            for(int k=0; k<protoSpec_i.rewards_size(); ++k)
-            {
-                maxsum::FactorID fac = protoSpec_i.rewards(k).id();
-                lastRewards_i[fac] = 0.0;
-            }
-            
-            //******************************************************************
-            //  Re don't plan to do this operation too often, so might as well
-            //  save on space.
-            //******************************************************************
-            prevVars_i.shrink_to_fit();
-            prevState_i.shrink_to_fit();
-            curState_i.shrink_to_fit();
-            lastRewards_i.shrink_to_fit();
-            
-            //******************************************************************
-            //  Validate transition probabilities to make sure each state
-            //  occurs in a CPT domain exactly once.
-            //******************************************************************
-            validateCPT();
-            
-        } // initState
-        
-        /**
          * Ensure that each state occurs in the CPT domain exactly once.
          * i.e. exactly one factored transition matrix is responsible for
          * generating each state
@@ -377,7 +336,8 @@ namespace dec_brl
             gamma_i = protoSpec_i.gamma();
             
             //******************************************************************
-            //  Register state variables with maxsum library
+            //  Register state variables with maxsum library and record their
+            //  IDs for future reference.
             //******************************************************************
             const int nStates = protoSpec_i.states_size();
             if(0>=nStates)
@@ -385,15 +345,19 @@ namespace dec_brl
                 throw ProtoException("At least one state must be specified");
             }
             
+            stateIDs_i.clear();
+            stateIDs_i.reserve(nStates);
             for(int k=0; k<nStates; ++k)
             {
                 maxsum::VarID var = protoSpec_i.states(k).id();
                 maxsum::ValIndex siz = protoSpec_i.states(k).size();
                 maxsum::registerVariable(var, siz);
+                stateIDs_i.insert(stateIDs_i.end(), var);
             }
             
             //******************************************************************
-            //  Register action variables with maxsum library
+            //  Register action variables with maxsum library and record their
+            //  IDs for future reference.
             //******************************************************************
             const int nActions = protoSpec_i.actions_size();
             if(0>=nActions)
@@ -401,11 +365,14 @@ namespace dec_brl
                 throw ProtoException("At least one action must be specified");
             }
             
+            actionIDs_i.clear();
+            actionIDs_i.reserve(nActions);
             for(int k=0; k<nActions; ++k)
             {
                 maxsum::VarID var = protoSpec_i.actions(k).id();
                 maxsum::ValIndex siz = protoSpec_i.actions(k).size();
                 maxsum::registerVariable(var, siz);
+                actionIDs_i.insert(actionIDs_i.end(), var);
             }
             
             //******************************************************************
@@ -449,7 +416,125 @@ namespace dec_brl
             
         } // function setup
         
+        /**
+         * Utility class that acts like a boost random number generator,
+         * but always produces zero. We use this to initialise states to zero
+         * instead of random values.
+         */
+        struct ZeroGenerator
+        {
+            typedef uint32_t result_type;
+            
+            static result_type min()
+            {
+                return 0;
+            }
+            
+            static result_type max()
+            {
+                return std::numeric_limits<result_type>::max();
+            }
+            
+            result_type operator()()
+            {
+                return 0;
+            }
+            
+        }; // class ZeroGenerator
+        
     public:
+        
+        /**
+         * Initialises states and reward observations all to zero.
+         */
+        void initState()
+        {
+            ZeroGenerator zeroGen;
+            initState(zeroGen);
+        }
+        
+        /**
+         * Called to initialise state and reward observation maps.
+         * This version sets states to random values and initial rewards to
+         * zero (since no rewards have been generated yet). Previous states and
+         * actions are set to zero, since we don't expect their initial value to
+         * used. Should be updated immediately by performing some action on the
+         * current state.
+         * @param[in] generator random generator for making states
+         */
+        template<class Rand> void initState(Rand& random)
+        {
+            using namespace boost::random;
+            
+            //******************************************************************
+            //  Initialise previous states to zero (actual value not used -
+            //  we just want to allocate the space)
+            //******************************************************************
+            prevState_i.clear();
+            prevState_i.reserve(protoSpec_i.states_size());
+            for(int k=0; k<protoSpec_i.states_size(); ++k)
+            {
+                maxsum::VarID var = protoSpec_i.states(k).id();
+                prevState_i[var] = 0;
+            }
+            
+            //******************************************************************
+            //  Initialise previous variables (includes states and actions)
+            //  Again - actual values not used - we just want to preallocate
+            //  the structure.
+            //******************************************************************
+            int noVars = curState_i.size() + protoSpec_i.actions_size();
+            prevVars_i = prevState_i;
+            prevVars_i.reserve(noVars);
+            for(int k=0; k<protoSpec_i.actions_size(); ++k)
+            {
+                maxsum::VarID var = protoSpec_i.actions(k).id();
+                prevVars_i[var] = 0;
+            }
+            
+            //******************************************************************
+            //  Initialise observe rewards
+            //******************************************************************
+            lastRewards_i.clear();
+            lastRewards_i.reserve(protoSpec_i.rewards_size());
+            for(int k=0; k<protoSpec_i.rewards_size(); ++k)
+            {
+                maxsum::FactorID fac = protoSpec_i.rewards(k).id();
+                lastRewards_i[fac] = 0.0;
+            }
+            
+            //******************************************************************
+            //  Initialise CURRENT states. These values WILL BE USED to decide
+            //  what actions to take next, so their value matters. Current
+            //  policy is to set them to either zero (using ZeroGenerator) or
+            //  some random value in correct range.
+            //******************************************************************
+            curState_i.clear();
+            curState_i.reserve(protoSpec_i.states_size());
+            for(int k=0; k<protoSpec_i.states_size(); ++k)
+            {
+                maxsum::ValIndex mx = protoSpec_i.states(k).size()-1;
+                maxsum::VarID var = protoSpec_i.states(k).id();
+                uniform_smallint<maxsum::ValIndex> gen(0,mx);
+                curState_i[var] = gen(random);
+            }
+            
+            //******************************************************************
+            //  Re don't plan to do this operation too often, so might as well
+            //  save on space.
+            //******************************************************************
+            prevVars_i.shrink_to_fit();
+            prevState_i.shrink_to_fit();
+            curState_i.shrink_to_fit();
+            lastRewards_i.shrink_to_fit();
+            
+            //******************************************************************
+            //  Validate transition probabilities to make sure each state
+            //  occurs in a CPT domain exactly once.
+            //******************************************************************
+            validateCPT();
+            
+        } // initState
         
         /**
          * Construct an Empty FactoredMDP.
@@ -489,6 +574,38 @@ namespace dec_brl
         const VarMap& getCurState()
         {
             return curState_i;
+        }
+        
+        /**
+         * Returns the number of states in this MDP.
+         */
+        const int getNumOfStates()
+        {
+            return stateIDs_i.size();
+        }
+        
+        /**
+         * Accessor for list of ids for states in this MDP.
+         */
+        const VarIDList& getStateIDs()
+        {
+            return stateIDs_i;
+        }
+        
+        /**
+         * Returns the number of state variables in this MDP.
+         */
+        const int getNumOfActions()
+        {
+            return actionIDs_i.size();
+        }
+        
+        /**
+         * Accessor for list of ids for actions in this MDP.
+         */
+        const VarIDList& getActionIDs()
+        {
+            return actionIDs_i;
         }
         
         /**
