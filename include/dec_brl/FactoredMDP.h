@@ -358,82 +358,15 @@ namespace dec_brl
             
         } // function validateCPT
         
-    public:
-        
         /**
-         * Construct an Empty FactoredMDP.
-         * @param gamma discount factor for MDP.
+         * Initialises everything from the protocol buffer specification.
+         * @pre protoSpec_i must contain a full and valid MDP specification.
+         * @see FactoredMDP::ParseFromFile()
+         * @see FactoredMDP::ParseFromStream()
+         * @see FactoredMDP::CopyFromProto()
          */
-        FactoredMDP(double gamma=0.0) : gamma_i(gamma) {}
-        
-        /**
-         * Accessor for MDP discount factor.
-         */
-        double getGamma() { return gamma_i; }
-        
-        /**
-         * Accessor method for MDP discount factor.
-         */
-        void setGamma(double gamma)
+        void setup()
         {
-            //******************************************************************
-            //  Update protocol buffer specification as well as local copy,
-            //  in case we ever need to write back out to file.
-            //******************************************************************
-            gamma_i = gamma;
-            protoSpec_i.set_gamma(gamma);
-        }
-        
-        /**
-         * Accessor for previous variables.
-         */
-        const VarMap& getPrevVars()
-        {
-            return prevVars_i;
-        }
-        
-        /**
-         * Accessor for cur states.
-         */
-        const VarMap& getCurState()
-        {
-            return curState_i;
-        }
-        
-        /**
-         * Accessor for last observed rewards.
-         */
-        const RewardMap& getLastRewards()
-        {
-            return lastRewards_i;
-        }
-        
-        /**
-         * Reads a FactoredMDP from a file containing a single protocol buffer
-         * FactoredMDP.proto instance.
-         */
-        void parseFromFile(std::string filename)
-        {
-            using namespace std;
-            fstream input(filename.c_str(), ios::in | ios::binary);
-            parseFromIStream(input);
-        }
-        
-        /**
-         * Reads FactoredMDP from protocol buffer specification.
-         * @returns 0 on success, -1 otherwise
-         */
-        void parseFromIStream(std::istream& input)
-        {
-            //******************************************************************
-            //  Parse definition from input stream using protocol buffers
-            //******************************************************************
-            if(!protoSpec_i.ParseFromIstream(&input))
-            {
-                throw ProtoException("Failed to parse specification from "
-                                     "stream");
-            }
-            
             //******************************************************************
             //  Set MDP discount factor
             //******************************************************************
@@ -514,7 +447,107 @@ namespace dec_brl
             //******************************************************************
             initState();
             
+        } // function setup
+        
+    public:
+        
+        /**
+         * Construct an Empty FactoredMDP.
+         * @param gamma discount factor for MDP.
+         */
+        FactoredMDP(double gamma=0.0) : gamma_i(gamma) {}
+        
+        /**
+         * Accessor for MDP discount factor.
+         */
+        double getGamma() { return gamma_i; }
+        
+        /**
+         * Accessor method for MDP discount factor.
+         */
+        void setGamma(double gamma)
+        {
+            //******************************************************************
+            //  Update protocol buffer specification as well as local copy,
+            //  in case we ever need to write back out to file.
+            //******************************************************************
+            gamma_i = gamma;
+            protoSpec_i.set_gamma(gamma);
+        }
+        
+        /**
+         * Accessor for previous variables.
+         */
+        const VarMap& getPrevVars()
+        {
+            return prevVars_i;
+        }
+        
+        /**
+         * Accessor for cur states.
+         */
+        const VarMap& getCurState()
+        {
+            return curState_i;
+        }
+        
+        /**
+         * Accessor for last observed rewards.
+         */
+        const RewardMap& getLastRewards()
+        {
+            return lastRewards_i;
+        }
+        
+        /**
+         * Reads a FactoredMDP from a file containing a single protocol buffer
+         * FactoredMDP.proto instance.
+         */
+        void parseFromFile(std::string filename)
+        {
+            using namespace std;
+            fstream input(filename.c_str(), ios::in | ios::binary);
+            parseFromIStream(input);
+        }
+        
+        /**
+         * Reads FactoredMDP from protocol buffer specification.
+         * @returns 0 on success, -1 otherwise
+         */
+        void parseFromIStream(std::istream& input)
+        {
+            //******************************************************************
+            //  Parse definition from input stream using protocol buffers
+            //******************************************************************
+            if(!protoSpec_i.ParseFromIstream(&input))
+            {
+                throw ProtoException("Failed to parse specification from "
+                                     "stream");
+            }
+            
+            //******************************************************************
+            //  Call setup to do the hard work
+            //******************************************************************
+            setup();
+            
         } // parseFromIStream
+        
+        /**
+         * Setups up MDP from a previous parsed MDP specification.
+         * @param mdp protocol buffer specification of factored MDP.
+         */
+        void copyFromProto(const proto::FactoredMDP& protoMDP)
+        {
+            //******************************************************************
+            //  Try to copy the MDP
+            //******************************************************************
+            protoSpec_i.CopyFrom(protoMDP);
+            
+            //******************************************************************
+            //  Call setup to do the hard work
+            //******************************************************************
+            setup();
+        }
         
         /**
          * Update states and rewards by performing given actions.

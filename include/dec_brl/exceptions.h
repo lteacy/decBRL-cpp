@@ -38,6 +38,37 @@ namespace dec_brl
         }
         
     }; // class ProtoException
+        
+    /**
+     * Thrown if a problem occurs while running an experiment, or with the
+     * experimental setup.
+     */
+    class ExperimentException : public std::exception
+    {
+    private:
+        std::string msg_i;
+        
+    public:
+        
+        ExperimentException(const ExperimentException& rhs) throw()
+        : msg_i(rhs.msg_i) {}
+        
+        ExperimentException(std::string msg) throw() : msg_i(msg) {}
+        
+        ExperimentException& operator=(const ExperimentException& rhs) throw()
+        {
+            msg_i = rhs.msg_i;
+            return *this;
+        }
+        
+        virtual ~ExperimentException() throw() {}
+        
+        virtual const char* what() const throw()
+        {
+            return msg_i.c_str();
+        }
+        
+    }; // class ExperimentException
     
 } // namespace dec_brl
 
