@@ -20,6 +20,7 @@
 #include "dec_brl/DecBayesQ.h"
 #include "dec_brl/DecBayesModelLearner.h"
 #include "dec_brl/LearningSolver.h"
+#include "dec_brl/DecRandomPolicy.h"
 
 namespace  {
     
@@ -318,6 +319,9 @@ int main(int argc, char* argv[])
     if(learnerType==proto::ExperimentSetup_Algorithm_RANDOM)
     {
         std::cout << "Running Experiment on RANDOM policy" << std::endl;
+        DecRandomPolicy<boost::random::mt19937> randPolicy;
+        runExperiment(mdp, randPolicy, recorder, randSeeds, nEpisodes,
+                      nTimesteps);
     }
     //**************************************************************************
     //  EGREEDY Q Learner experiment
