@@ -80,8 +80,8 @@ public:
     */
    DecBayesModelLearner
    (
-    MDPSolver solver=MDPSolver(),
     double gamma=DEFAULT_GAMMA,
+    MDPSolver solver=MDPSolver(),
     int maxIterations=maxsum::MaxSumController::DEFAULT_MAX_ITERATIONS,
     maxsum::ValType maxnorm=maxsum::MaxSumController::DEFAULT_MAXNORM_THRESHOLD
    )

@@ -20,12 +20,6 @@ class DecBayesQ
 private:
 
    /**
-    * Alpha parameter.
-    * The weight to place in new reward estimates.
-    */
-   double alpha_i;
-
-   /**
     * Gamma parameter.
     * The discount factor for future rewards.
     * Must be in open range (0,1).
@@ -89,12 +83,11 @@ public:
     */
    DecBayesQ
    (
-    double alpha=DEFAULT_ALPHA,
     double gamma=DEFAULT_GAMMA,
     int maxIterations=maxsum::MaxSumController::DEFAULT_MAX_ITERATIONS,
     maxsum::ValType maxnorm=maxsum::MaxSumController::DEFAULT_MAXNORM_THRESHOLD
    )
-   : alpha_i(alpha), gamma_i(gamma), 
+   : gamma_i(gamma), 
      maxsum_i(maxIterations,maxnorm), actionSet_i(), isInitialised_i(false),
      qBeliefs_i()
    {}
@@ -103,7 +96,7 @@ public:
     * (Deep) Copy constructor.
     */
    DecBayesQ(const DecBayesQ& rhs)
-   : alpha_i(rhs.alpha_i), gamma_i(rhs.gamma_i), 
+   : gamma_i(rhs.gamma_i),
      maxsum_i(rhs.maxsum_i), actionSet_i(rhs.actionSet_i), 
      isInitialised_i(rhs.isInitialised_i), qBeliefs_i(rhs.qBeliefs_i)
    {}
@@ -113,7 +106,6 @@ public:
     */
    DecBayesQ& operator=(const DecBayesQ& rhs)
    {
-      alpha_i = rhs.alpha_i;
       gamma_i = rhs.gamma_i;
       maxsum_i = rhs.maxsum_i;
       actionSet_i = rhs.actionSet_i;

@@ -16,6 +16,10 @@
 #include "dec_brl/FactoredMDP.h"
 #include "Experiment.pb.h"
 #include <ctime>
+#include "dec_brl/DecQLearner.h"
+#include "dec_brl/DecBayesQ.h"
+#include "dec_brl/DecBayesModelLearner.h"
+#include "dec_brl/LearningSolver.h"
 
 namespace  {
     
@@ -292,39 +296,74 @@ int main(int argc, char* argv[])
     }
     
     //**************************************************************************
+    //  Retrieve random seeds (if any) from setup
+    //**************************************************************************
+    std::vector<uint32_t> randSeeds(setup.seed().begin(),setup.seed().end());
+    
+    //**************************************************************************
+    //  Set up recorder for recording experimental results.
+    //**************************************************************************
+    SimpleRecorder recorder;
+    
+    //**************************************************************************
     //  Get number of timesteps and number of episodes from specification
     //**************************************************************************
     uint nTimesteps = setup.timesteps();
     uint nEpisodes = setup.episodes();
     
     //**************************************************************************
-    // Initialise learner and run experiment. How we do this exactly, depends
-    // on the learner type.
+    // If selected, setup and run experiment on RANDOM policy
     //**************************************************************************
-    
-
+    proto::ExperimentSetup_Algorithm learnerType = setup.learner();
+    if(learnerType==proto::ExperimentSetup_Algorithm_RANDOM)
+    {
+        std::cout << "Running Experiment on RANDOM policy" << std::endl;
+    }
     //**************************************************************************
-    //  Perform some actions
+    //  EGREEDY Q Learner experiment
     //**************************************************************************
-    boost::mt19937 randGenerator; // generates uniform random numbers
-    boost::container::flat_map<unsigned int, int> actions;
-    std::cout << "MDP=" << mdp << std::endl;
-    actions[3]=1;
-    actions[4]=1;
-    std::cout << "performing actions: " << actions << std::endl;
-    mdp.act(randGenerator, actions);
-    std::cout << "MDP=" << mdp << std::endl;
-    actions[3]=0;
-    actions[4]=2;
-    std::cout << "performing actions: " << actions << std::endl;
-    mdp.act(randGenerator, actions);
-    std::cout << "MDP=" << mdp << std::endl;
-    actions[3]=1;
-    actions[4]=0;
-    std::cout << "performing actions: " << actions << std::endl;
-    mdp.act(randGenerator, actions);
-    std::cout << "MDP=" << mdp << std::endl;
-    
+    else if(learnerType==proto::ExperimentSetup_Algorithm_EGREEDY_Q)
+    {
+        std::cout << "Running Experiment on EGREEDY_Q policy" << std::endl;
+        double alpha_q = setup.params_egreedyq().alphaq();
+        double epsilon = setup.params_egreedyq().epsilonq();
+        DecQLearner qLearner(alpha_q,mdp.getGamma(),epsilon);
+        runExperiment(mdp, qLearner, recorder, randSeeds, nEpisodes,
+                      nTimesteps);
+    }
+    //**************************************************************************
+    // Bayes Q Learner experiment
+    //**************************************************************************
+    else if(learnerType==proto::ExperimentSetup_Algorithm_BAYES_Q)
+    {
+        std::cout << "Running Experiment on BAYES_Q policy" << std::endl;
+        DecBayesQ bayesQ(mdp.getGamma());
+        runExperiment(mdp, bayesQ, recorder, randSeeds, nEpisodes, nTimesteps);
+    }
+    //**************************************************************************
+    //  Model-based Bayes RL experiment
+    //**************************************************************************
+    else if(learnerType==proto::ExperimentSetup_Algorithm_MODEL_BAYES)
+    {
+        std::cout << "Running Experiment on MODEL_BAYES policy";
+        LearningSolver<DecQLearner> solver;
+        
+        DecBayesModelLearner<LearningSolver<DecQLearner> >
+            modelBayes(mdp.getGamma());
+        
+        runExperiment(mdp, modelBayes, recorder, randSeeds, nEpisodes,
+                      nTimesteps);
+    }
+    //**************************************************************************
+    //  If we get this far, somehow we've got an unknown type of experiment
+    //  Probably the code is out of date.
+    //**************************************************************************
+    else
+    {
+        std::cerr << "Internal Error: Unknown Algorithm type" << std::endl;
+        std::cout << "Exiting due to unknown algorithm type" << std::endl;
+        return EXIT_FAILURE;
+    }
     
     //**************************************************************************
     // Delete all global objects allocated by libprotobuf.
