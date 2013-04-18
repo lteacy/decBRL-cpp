@@ -1,6 +1,7 @@
 #ifndef DEC_BRL_DEC_BAYES_Q_H
 #define DEC_BRL_DEC_BAYES_Q_H
 
+#include "dec_brl/LearnerBase.h"
 #include "dec_brl/random.h"
 #include "dec_brl/NormalGamma.h"
 #include "dec_brl/vpi.h"
@@ -15,7 +16,7 @@ namespace dec_brl {
  * Implements a factored Q Learning policy using maxsum and e-greedy
  * exploration. 
  */
-class DecBayesQ
+class DecBayesQ : public LearnerBase<>
 {
 private:
 

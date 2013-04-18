@@ -5,6 +5,7 @@
 #ifndef DEC_BRL_DEC_RANDOM_POLICY_H
 #define DEC_BRL_DEC_RANDOM_POLICY_H
 
+#include "dec_brl/LearnerBase.h"
 #include <boost/container/flat_map.hpp>
 #include <boost/random/uniform_smallint.hpp>
 #include "common.h"
@@ -17,7 +18,7 @@ namespace dec_brl {
      * Implements a simple random baseline policy that doesn't learn anything.
      * @tparam type of random number generator used for choosing actions.
      */
-    template<class Rand> class DecRandomPolicy
+    template<class Rand> class DecRandomPolicy : public LearnerBase<Rand>
     {
     private:
         
@@ -59,21 +60,7 @@ namespace dec_brl {
             actions_i = rhs.actions_i;
             return *this;
         }
-        
-        /**
-         * Required to implement learner concept, but does nothing.
-         * @see maxsum::register
-         */
-        template<class VarIt> void addFactor
-        (
-         maxsum::FactorID factor,
-         VarIt varBegin,
-         VarIt varEnd
-        )
-        {
-            // DO NOTHING
-        }
-        
+                
         /**
          * Tells the policy which variables are actions in this MDP
          */
@@ -94,21 +81,9 @@ namespace dec_brl {
         /**
          * Set the random number generator.
          */
-        void setGenerator(Rand& random)
+        void setGenerator(Rand* random)
         {
-            pGenerator_i = &random;
-        }
-        
-        /**
-         * Required to implement learner concept, but does nothing.
-         */
-        template<class Iterator> void setStates
-        (
-         Iterator stateBegin,
-         Iterator stateEnd
-        )
-        {
-            // DO NOTHING
+            pGenerator_i = random;
         }
         
         /**
@@ -140,23 +115,9 @@ namespace dec_brl {
                 k!=actions_i.end(); ++k)
             {
                 maxsum::ValIndex mx = k->second;
-                uniform_smallint<maxsum::ValIndex> random(0,mx);
+                uniform_smallint<maxsum::ValIndex> random(0,mx-1);
                 actions[k->first] = random(*pGenerator_i);
             }
-        }
-                
-        /**
-         * Required to implement learner concept, but does nothing.
-         */
-        template<class RewardMap, class VarMap> void observe
-        (
-         const VarMap& priorStates,
-         const VarMap& actions,
-         const VarMap& postStates,
-         const RewardMap& rewards
-        )
-        {
-            // DO NOTHING
         }
         
     }; // class DecRandomPolicy

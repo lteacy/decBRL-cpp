@@ -1,6 +1,7 @@
 #ifndef DEC_BRL_DEC_Q_LEARNER_H
 #define DEC_BRL_DEC_Q_LEARNER_H
 
+#include "dec_brl/LearnerBase.h"
 #include "dec_brl/random.h"
 #include "MaxSumController.h"
 #include <set>
@@ -13,7 +14,7 @@ namespace dec_brl {
  * Implements a factored Q Learning policy using maxsum and e-greedy
  * exploration. 
  */
-class DecQLearner
+class DecQLearner : public LearnerBase<>
 {
 private:
 

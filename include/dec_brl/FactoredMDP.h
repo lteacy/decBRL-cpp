@@ -617,6 +617,44 @@ namespace dec_brl
         }
         
         /**
+         * Inform a learning policy about the structure of this MDP.
+         * @tparam Policy a type of learning policy that implements the
+         * LearnerBase::addFactor() function.
+         * @param learner the learning policy to inform with structure.
+         * @pre the learner is not currently aware of any other factors - either
+         * because its addFactor() method has never been called, or because its
+         * internal factor graph representation has otherwise been set to empty.
+         * @post the addFactor() method will have been called for each reward
+         * factor in this MDP.
+         */
+        template<class Learner> void describeFactors(Learner& learner)
+        {
+            //******************************************************************
+            //  For each reward factor in the factor graph
+            //******************************************************************
+            for(FactorMap::const_iterator k=rewardFactors_i.begin();
+                k!=rewardFactors_i.end(); ++k)
+            {
+                //**************************************************************
+                //  Tell the learner which variables the current factor
+                //  depends on.
+                //
+                //  Notice, the FactorMap links to two
+                //  DiscreteFunctions: the expected reward function and its
+                //  standard deviation. We could take the domain of either, but
+                //  the standard deviation may be constant, with no domain, so
+                //  only the reward function itself is guarranteed to have the
+                //  correct domain.
+                //**************************************************************
+                maxsum::FactorID id = k->first;
+                const maxsum::DiscreteFunction& factor = k->second.reward;
+                learner.addFactor(id,factor.varBegin(),factor.varEnd());
+                
+            } // for loop
+            
+        } // function describeFactors
+        
+        /**
          * Reads a FactoredMDP from a file containing a single protocol buffer
          * FactoredMDP.proto instance.
          */

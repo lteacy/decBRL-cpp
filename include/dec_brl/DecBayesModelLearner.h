@@ -1,6 +1,7 @@
 #ifndef DEC_BRL_DEC_BAYES_MODEL_LEARNER_H
 #define DEC_BRL_DEC_BAYES_MODEL_LEARNER_H
 
+#include "dec_brl/LearnerBase.h"
 #include "dec_brl/random.h"
 #include "dec_brl/NormalGamma.h"
 #include "dec_brl/vpi.h"
@@ -17,7 +18,7 @@ namespace dec_brl {
  * learner.
  * @tparam MDPSolver type used to solve factored MDPs in subroutines.
  */
-template<class MDPSolver> class DecBayesModelLearner
+template<class MDPSolver> class DecBayesModelLearner : public LearnerBase<>
 {
 private:
 

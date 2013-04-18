@@ -45,7 +45,7 @@ namespace  {
          int observationTime=-1
         )
         {
-            std::cout << "EPISODE: " << epsiode << "TIMESTEP: " << timestep;
+            std::cout << "EPISODE: " << epsiode << " TIMESTEP: " << timestep;
             std::cout << std::endl;
             std::cout << mdp << std::endl;
             std::cout << " obsTime: " << observationTime << " actTime: ";
@@ -83,9 +83,10 @@ namespace  {
         flat_map<maxsum::VarID, maxsum::ValIndex> actions;
         int nActions = mdp.getNumOfActions();
         actions.reserve(nActions);
-        for(int k=0; k<nActions; ++k)
+        for(FactoredMDP::VarIDList::const_iterator k=mdp.getActionIDs().begin();
+            k!=mdp.getActionIDs().end(); ++k)
         {
-            actions[k] = 0;
+            actions[*k] = 0;
         }
 
         //**********************************************************************
@@ -169,7 +170,10 @@ namespace  {
         //  Inform the learner about the structure of the MDP
         //**********************************************************************
         std::cout << "Telling learner about problem structure..";
-        // TODO
+        learner.setStates(mdp.getStateIDs().begin(),mdp.getStateIDs().end());
+        learner.setActions(mdp.getActionIDs().begin(),mdp.getActionIDs().end());
+        learner.setGenerator(&random);
+        mdp.describeFactors(learner);
         std::cout << "OK." << std::endl;
         
         //**********************************************************************
