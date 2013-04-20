@@ -21,6 +21,7 @@
 #include "dec_brl/DecBayesModelLearner.h"
 #include "dec_brl/LearningSolver.h"
 #include "dec_brl/DecRandomPolicy.h"
+#include "dec_brl/ProtoRecorder.h"
 
 namespace  {
     
@@ -308,7 +309,8 @@ int main(int argc, char* argv[])
     //**************************************************************************
     //  Set up recorder for recording experimental results.
     //**************************************************************************
-    SimpleRecorder recorder;
+    ProtoRecorder recorder(outFilename);
+    recorder.writeSetup(setup);
     
     //**************************************************************************
     //  Get number of timesteps and number of episodes from specification

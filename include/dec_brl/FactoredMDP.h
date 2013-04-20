@@ -545,7 +545,7 @@ namespace dec_brl
         /**
          * Accessor for MDP discount factor.
          */
-        double getGamma() { return gamma_i; }
+        double getGamma() const { return gamma_i; }
         
         /**
          * Accessor method for MDP discount factor.
@@ -563,7 +563,7 @@ namespace dec_brl
         /**
          * Accessor for previous variables.
          */
-        const VarMap& getPrevVars()
+        const VarMap& getPrevVars() const
         {
             return prevVars_i;
         }
@@ -571,7 +571,7 @@ namespace dec_brl
         /**
          * Accessor for cur states.
          */
-        const VarMap& getCurState()
+        const VarMap& getCurState() const
         {
             return curState_i;
         }
@@ -579,7 +579,7 @@ namespace dec_brl
         /**
          * Returns the number of states in this MDP.
          */
-        const int getNumOfStates()
+        const int getNumOfStates() const
         {
             return stateIDs_i.size();
         }
@@ -587,7 +587,7 @@ namespace dec_brl
         /**
          * Accessor for list of ids for states in this MDP.
          */
-        const VarIDList& getStateIDs()
+        const VarIDList& getStateIDs() const
         {
             return stateIDs_i;
         }
@@ -595,7 +595,7 @@ namespace dec_brl
         /**
          * Returns the number of state variables in this MDP.
          */
-        const int getNumOfActions()
+        const int getNumOfActions() const
         {
             return actionIDs_i.size();
         }
@@ -603,7 +603,7 @@ namespace dec_brl
         /**
          * Accessor for list of ids for actions in this MDP.
          */
-        const VarIDList& getActionIDs()
+        const VarIDList& getActionIDs() const
         {
             return actionIDs_i;
         }
@@ -611,7 +611,7 @@ namespace dec_brl
         /**
          * Accessor for last observed rewards.
          */
-        const RewardMap& getLastRewards()
+        const RewardMap& getLastRewards() const
         {
             return lastRewards_i;
         }

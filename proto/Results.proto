@@ -1,4 +1,5 @@
 package dec_brl.proto;
+import "Experiment.proto";
 
 // Outcome of a single reinforcement learning timestep
 message Outcome
@@ -35,3 +36,20 @@ message Outcome
    extensions 100 to 199;
 }
 
+// Wrapper for storing messages to file.
+message ResultMsg
+{
+   enum Type
+   {
+      OUTCOME = 1;
+      SETUP = 2;
+      END_MSG = 100;
+   }
+
+   // identifies which type of message this is
+   required Type type = 1;
+
+   // one of the following will be filled in
+   optional Outcome outcome = 2;
+   optional ExperimentSetup setup = 3;
+}
