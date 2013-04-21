@@ -21,16 +21,15 @@ message Outcome
       required float  value = 2; // observed value
    }
 
-   repeated Variable prevState = 3; // previous state values
-   repeated Variable curState  = 4; // current state values
-   repeated Variable action    = 5; // performed actions
-   repeated Reward   reward    = 6; // observed factored rewards
+   repeated Variable state  = 3; // state values when actions where performed
+   repeated Variable action = 4; // performed actions
+   repeated Reward   reward = 5; // observed factored rewards
 
    // Number of milliseconds for learner to update policy after observing outcome
-   optional uint32 UpdateTimeInMs = 7;
+   optional uint32 UpdateTimeInMs = 6;
 
    // Number of milliseconds for learn to decide which actions to take
-   optional uint32 ActTimeInMs = 8;
+   optional uint32 ActTimeInMs = 7;
 
    // The following field ids are reserved for third party extensions
    extensions 100 to 199;

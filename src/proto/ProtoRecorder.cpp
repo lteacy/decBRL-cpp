@@ -123,14 +123,52 @@ void dec_brl::ProtoRecorder::fillOutcome
     pOutcome->set_updatetimeinms(observationTime);
     
     //**************************************************************************
-    //  Add all states and actions
+    //  Add all actions to the protobuf structure. We do this by iterating
+    //  through the list of action IDs and retrieving the corresponding values
+    //  from the previous variables map. We do it this way to make sure we
+    //  only pick up actions and not states.
+    //
+    //  Although there are more efficient ways to do this, the difference
+    //  in speed would probably be unoticeable, and doing it any other
+    //  way would require changing the FactorMDP data structures.
     //**************************************************************************
+    typedef FactoredMDP::VarIDList::const_iterator VarIt;
+    typedef FactoredMDP::VarMap::const_iterator MapIt;
+    for(VarIt it=mdp.getActionIDs().begin(); it!=mdp.getActionIDs().end(); ++it)
+    {
+        maxsum::VarID id = *it;                     // get action id
+        MapIt mapLoc = mdp.getPrevVars().find(*it); // find its value
+        assert(mapLoc!=mdp.getPrevVars().end());    // sanity check its there
+        maxsum::ValIndex val = mapLoc->second;      // retrieve the value
+        
+        proto::Outcome_Variable* pVar = pOutcome->add_action(); // add to list
+        assert(0!=pVar);
+        pVar->set_id(id);
+        pVar->set_value(val);
+    }
+    
+    //**************************************************************************
+    //  Add all states to the protobuf structure.
+    //  We do this in the same way as we did for the actions above.
+    //**************************************************************************
+    for(VarIt it=mdp.getStateIDs().begin(); it!=mdp.getStateIDs().end(); ++it)
+    {
+        maxsum::VarID id = *it;                     // get state id
+        MapIt mapLoc = mdp.getPrevVars().find(*it); // find its value
+        assert(mapLoc!=mdp.getPrevVars().end());    // sanity check its there
+        maxsum::ValIndex val = mapLoc->second;      // retrieve the value
+        
+        proto::Outcome_Variable* pVar = pOutcome->add_state(); // add to list
+        assert(0!=pVar);
+        pVar->set_id(id);
+        pVar->set_value(val);
+    }
     
     //**************************************************************************
     //  Add factored rewards (with corresponding factor ids)
     //**************************************************************************
-    typedef FactoredMDP::RewardMap::const_iterator Iterator;
-    for(Iterator it = mdp.getLastRewards().begin();
+    typedef FactoredMDP::RewardMap::const_iterator RewardIt;
+    for(RewardIt it = mdp.getLastRewards().begin();
         it != mdp.getLastRewards().end(); ++it)
     {
         maxsum::FactorID id = it->first;
