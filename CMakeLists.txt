@@ -84,6 +84,16 @@ IF(PROTOBUF_FOUND)
    TARGET_LINK_LIBRARIES(decBRLSimulator MaxSum DecBRL Polygamma DecBRLProto)
    ADD_EXECUTABLE(printResultFile src/printResultFile.cpp)
    TARGET_LINK_LIBRARIES(printResultFile DecBRLProto)
+
+   ############################################
+   # Try also to build matlab mex files
+   ############################################
+   INCLUDE(FindMatlab.cmake)
+   IF(MATLAB_FOUND)
+      INCLUDE_DIRECTORIES(${MATLAB_INCLUDE_DIR})
+      MATLAB_MEX_CREATE(readResults matlab/readResults.cpp DecBRLProto)
+   ENDIF(MATLAB_FOUND)
+
 ELSE(PROTOBUF_FOUND)
    MESSAGE("Protocal Buffers not found - cannot build simulator!")
 ENDIF(PROTOBUF_FOUND)

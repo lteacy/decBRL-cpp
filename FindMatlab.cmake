@@ -197,11 +197,13 @@ ENDMACRO(MATLAB_EXTRACT_SOURCES_LIBRARIES)
 MACRO(MATLAB_MEX_CREATE functionname)
   MATLAB_EXTRACT_SOURCES_LIBRARIES(sources thirdlibraries ${ARGN})
 
-  ADD_LIBRARY(${functionname} SHARED ${sources} mexFunction.def)
+  #ADD_LIBRARY(${functionname} SHARED ${sources} mexFunction.def)
+  ADD_LIBRARY(${functionname} SHARED ${sources})
   TARGET_LINK_LIBRARIES(${functionname} ${MATLAB_LIBRARIES} ${thirdlibraries})
   SET_TARGET_PROPERTIES(${functionname} PROPERTIES
     PREFIX ""
     SUFFIX  ".${MATLAB_MEXFILE_EXT}"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/matlab"
   )
 ENDMACRO(MATLAB_MEX_CREATE)
 
