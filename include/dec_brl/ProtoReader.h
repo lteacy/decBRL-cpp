@@ -49,6 +49,11 @@ namespace dec_brl
         proto::ResultMsg nextMsg_i;
         
         /**
+         * Buffer for current outcome.
+         */
+        proto::Outcome curOutcome_i;
+        
+        /**
          * Read next message in file.
          */
         bool readNextMessage();
@@ -71,7 +76,7 @@ namespace dec_brl
          */
         int getNumOfOutcomes()
         {
-            return 0;
+            return outcomes_i.size();
         }
         
         /**
@@ -85,17 +90,14 @@ namespace dec_brl
         /**
          * Returns the next experimental outcome stored on file.
          */
-        const proto::Outcome& getNextOutcome()
-        {
-            return nextMsg_i.outcome();
-        }
+        const proto::Outcome& getNextOutcome();
         
         /**
          * Returns true if there is a next outcome.
          */
         bool hasOutcome()
         {
-            return false;
+            return !outcomes_i.empty();
         }
         
         /**
@@ -104,7 +106,8 @@ namespace dec_brl
          */
         bool hasExperiment()
         {
-            return false;
+            using namespace dec_brl::proto;
+            return hasOutcome() || nextMsg_i.type()!=ResultMsg_Type_END_MSG;
         }
         
         /**

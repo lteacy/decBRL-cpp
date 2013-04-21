@@ -63,7 +63,7 @@ int main(int argc, char* argv[])
     //**************************************************************************
     //  Deal with any errors
     //**************************************************************************
-    catch(std::exception e)
+    catch(std::exception& e)
     {
         std::cerr << "Caught Error: " << e.what() << std::endl;
         std::cout << "Failed to read data from file: " << inFilename << '\n';

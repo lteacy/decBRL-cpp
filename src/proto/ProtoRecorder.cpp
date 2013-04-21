@@ -203,7 +203,7 @@ void dec_brl::ProtoRecorder::operator()
     //**************************************************************************
     // Copy content details into wrapper message
     //**************************************************************************
-    nextMsg_i.set_type(proto::ResultMsg::SETUP);
+    nextMsg_i.set_type(proto::ResultMsg::OUTCOME);
     nextMsg_i.clear_setup();
     nextMsg_i.clear_outcome();
     fillOutcome(mdp, epsiode, timestep, actionTime, observationTime);
