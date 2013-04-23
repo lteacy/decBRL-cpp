@@ -11,7 +11,26 @@ mxArray* egreedyQParams2mat
  const dec_brl::proto::ExperimentSetup_EGreedyQParams& params
 )
 {
-    return mxCreateDoubleMatrix(0, 0, mxREAL);
+    //**************************************************************************
+    //  Create structure array to hold result
+    //**************************************************************************
+    const int N_FIELDS = 2;
+    const char* FIELDNAMES[] = {"epsilonQ","alphaQ"};
+    mxArray* pStruct = mxCreateStructMatrix(1, 1, N_FIELDS, FIELDNAMES);
+    
+    //**************************************************************************
+    //  Fill in fields
+    //**************************************************************************
+    mxArray* pEpsilonQ = mxCreateDoubleScalar(params.epsilonq());
+    mxSetField(pStruct, 0, "epsilonQ", pEpsilonQ);
+    
+    mxArray* pAlphaQ = mxCreateDoubleScalar(params.alphaq());
+    mxSetField(pStruct, 0, "alphaQ", pAlphaQ);
+    
+    //**************************************************************************
+    //  Return result
+    //**************************************************************************
+    return pStruct;
     
 } // egreedyQParams2mat
 
@@ -23,7 +42,32 @@ mxArray* bayesQParams2mat
  const dec_brl::proto::ExperimentSetup_BayesQParams& params
 )
 {
-    return mxCreateDoubleMatrix(0, 0, mxREAL);
+    //**************************************************************************
+    //  Create structure array to hold result
+    //**************************************************************************
+    const int N_FIELDS = 4;
+    const char* FIELDNAMES[] = {"alpha","beta","lambda","mu"};
+    mxArray* pStruct = mxCreateStructMatrix(1, 1, N_FIELDS, FIELDNAMES);
+    
+    //**************************************************************************
+    //  Fill in fields
+    //**************************************************************************
+    mxArray* pAlpha = mxCreateDoubleScalar(params.alpha());
+    mxSetField(pStruct, 0, "alpha", pAlpha);
+    
+    mxArray* pBeta = mxCreateDoubleScalar(params.beta());
+    mxSetField(pStruct, 0, "beta", pBeta);
+    
+    mxArray* pLambda = mxCreateDoubleScalar(params.lambda());
+    mxSetField(pStruct, 0, "lambda", pLambda);
+    
+    mxArray* pMu = mxCreateDoubleScalar(params.mu());
+    mxSetField(pStruct, 0, "mu", pMu);
+    
+    //**************************************************************************
+    //  Return result
+    //**************************************************************************
+    return pStruct;
     
 } // bayesQParams2mat
 
@@ -35,9 +79,200 @@ mxArray* modelBayesParams2mat
  const dec_brl::proto::ExperimentSetup_ModelBayesParams& params
 )
 {
-    return mxCreateDoubleMatrix(0, 0, mxREAL);
+    //**************************************************************************
+    //  Create structure array to hold result
+    //**************************************************************************
+    const int N_FIELDS = 5;
+    const char* FIELDNAMES[] = {"dAlpha","nAlpha","beta","lambda","mu"};
+    mxArray* pStruct = mxCreateStructMatrix(1, 1, N_FIELDS, FIELDNAMES);
+    
+    //**************************************************************************
+    //  Fill in fields
+    //**************************************************************************
+    mxArray* pDAlpha = mxCreateDoubleScalar(params.dalpha());
+    mxSetField(pStruct, 0, "dAlpha", pDAlpha);
+    
+    mxArray* pNAlpha = mxCreateDoubleScalar(params.nalpha());
+    mxSetField(pStruct, 0, "nAlpha", pNAlpha);
+    
+    mxArray* pBeta = mxCreateDoubleScalar(params.beta());
+    mxSetField(pStruct, 0, "beta", pBeta);
+    
+    mxArray* pLambda = mxCreateDoubleScalar(params.lambda());
+    mxSetField(pStruct, 0, "lambda", pLambda);
+    
+    mxArray* pMu = mxCreateDoubleScalar(params.mu());
+    mxSetField(pStruct, 0, "mu", pMu);
+    
+    //**************************************************************************
+    //  Return result
+    //**************************************************************************
+    return pStruct;
     
 } // modelBayesParams2mat
+
+/**
+ * Utility function to write MDP Reward functions from proto buffers to matlab.
+ * @param[in] mdp containing list of rewards.
+ */
+mxArray* reward2mat
+(
+ const dec_brl::proto::FactoredMDP& mdp
+)
+{
+    using namespace dec_brl::proto;
+    using namespace google::protobuf;
+    
+    //**************************************************************************
+    //  Create structure array to hold result
+    //**************************************************************************
+    const int N_FIELDS = 4;
+    const char* FIELDNAMES[] = {"id","domain","values","std_dev"};
+    int nRewards = mdp.rewards_size();
+    mxArray* pStruct = mxCreateStructMatrix(1, nRewards, N_FIELDS, FIELDNAMES);
+    
+    //**************************************************************************
+    //  For Each Reward
+    //**************************************************************************
+    typedef RepeatedPtrField<FactoredMDP_Reward>::const_iterator Iterator;
+    int sIt=0; // current position in structure array
+    for(Iterator rIt=mdp.rewards().begin(); rIt!=mdp.rewards().end(); ++rIt)
+    {
+        //**********************************************************************
+        //  Set this reward's factor id
+        //**********************************************************************
+        mxArray* pId = mxCreateDoubleScalar(rIt->id());
+        mxSetField(pStruct, sIt, "id", pId);
+        
+        //**********************************************************************
+        //  Add the list of domain variable ids
+        //**********************************************************************
+        int nVars = rIt->domain_size();
+        mxArray* pDomain = mxCreateDoubleMatrix(1, nVars, mxREAL);
+        double* pDomainData = mxGetPr(pDomain);
+        for(int k=0; k<nVars; ++k)
+        {
+            pDomainData[k] = rIt->domain(k);
+        }
+        mxSetField(pStruct, sIt, "domain", pDomain);
+        
+        //**********************************************************************
+        //  Add all this reward's function values
+        //**********************************************************************
+        int nVals = rIt->values_size();
+        mxArray* pVals = mxCreateDoubleMatrix(1,nVals,mxREAL);
+        double* pValData = mxGetPr(pVals);
+        for(int k=0; k<nVals; ++k)
+        {
+            pValData[k] = rIt->values(k);
+        }
+        mxSetField(pStruct, sIt, "values", pVals);
+        
+        //**********************************************************************
+        //  Add any corresponding reward standard deviation values
+        //**********************************************************************
+        int nStdDev = rIt->std_dev_size();
+        mxArray* pStdDev = mxCreateDoubleMatrix(1,nStdDev,mxREAL);
+        double* pStdDevData = mxGetPr(pStdDev);
+        for(int k=0; k<nStdDev; ++k)
+        {
+            pStdDevData[k] = rIt->std_dev(k);
+        }
+        mxSetField(pStruct, sIt, "std_dev", pStdDev);
+        
+        //**********************************************************************
+        //  Move on to the next position in the reward structure array, ready
+        //  for the next iteration.
+        //**********************************************************************
+        ++sIt;
+        
+    } // outer for loop
+    
+    //**************************************************************************
+    //  Return result
+    //**************************************************************************
+    return pStruct;
+    
+} // reward2mat
+
+/**
+ * Utility function to write MDP transition functions from proto buffers
+ * to matlab.
+ * @param[in] mdp containing list of transition probability matrices.
+ */
+mxArray* transProb2mat
+(
+ const dec_brl::proto::FactoredMDP& mdp
+)
+{
+    using namespace dec_brl::proto;
+    using namespace google::protobuf;
+    
+    //**************************************************************************
+    //  Create structure array to hold result
+    //**************************************************************************
+    const int N_FIELDS = 3;
+    const char* FIELDNAMES[] = {"conditions","domain","values"};
+    int nTransProb = mdp.transitions_size();
+    mxArray* pStruct= mxCreateStructMatrix(1, nTransProb, N_FIELDS, FIELDNAMES);
+    
+    //**************************************************************************
+    //  For Each Transition
+    //**************************************************************************
+    typedef RepeatedPtrField<FactoredMDP_TransProb>::const_iterator TPIt;
+    int sIt=0; // current position in structure array
+    for(TPIt cpt=mdp.transitions().begin(); cpt!=mdp.transitions().end(); ++cpt)
+    {
+        //**********************************************************************
+        //  Populate the list of condition variable ids
+        //**********************************************************************
+        int nConditions = cpt->conditions_size();
+        mxArray* pConditions = mxCreateDoubleMatrix(1, nConditions, mxREAL);
+        double* pConditionData = mxGetPr(pConditions);
+        for(int k=0; k<nConditions; ++k)
+        {
+            pConditionData[k] = cpt->conditions(k);
+        }
+        mxSetField(pStruct, sIt, "conditions", pConditions);
+        
+        //**********************************************************************
+        //  Populate the list of domain variable ids
+        //**********************************************************************
+        int domainSize = cpt->domain_size();
+        mxArray* pDomain = mxCreateDoubleMatrix(1, domainSize, mxREAL);
+        double* pDomainData = mxGetPr(pDomain);
+        for(int k=0; k<domainSize; ++k)
+        {
+            pDomainData[k] = cpt->domain(k);
+        }
+        mxSetField(pStruct, sIt, "domain", pDomain);
+        
+        //**********************************************************************
+        //  Populate the values of the transition probability matrix
+        //**********************************************************************
+        int nVals = cpt->values_size();
+        mxArray* pVals = mxCreateDoubleMatrix(1, nVals, mxREAL);
+        double* pValData = mxGetPr(pVals);
+        for(int k=0; k<nVals; ++k)
+        {
+            pValData[k] = cpt->values(k);
+        }
+        mxSetField(pStruct, sIt, "values", pVals);
+        
+        //**********************************************************************
+        //  Move on to the next position in the reward structure array, ready
+        //  for the next iteration.
+        //**********************************************************************
+        ++sIt;
+        
+    } // outer for loop
+        
+    //**************************************************************************
+    //  Return result
+    //**************************************************************************
+    return pStruct;
+    
+} // transProb2mat
 
 /**
  * Utility function to write FactoredMDP from protocol buffers to matlab.
@@ -115,12 +350,14 @@ mxArray* mdp2mat
     //**************************************************************************
     //  Fill in rewards
     //**************************************************************************
-    // TODO will need separate function for this
+    mxArray* pRewards = reward2mat(mdp);
+    mxSetField(pStruct,0,"rewards",pRewards);
     
     //**************************************************************************
     //  Fill in transitions
     //**************************************************************************
-    // TODO will need separate function for this
+    mxArray* pTransProb = transProb2mat(mdp);
+    mxSetField(pStruct,0,"transitions",pTransProb);
     
     //**************************************************************************
     //  Return the finished structure
